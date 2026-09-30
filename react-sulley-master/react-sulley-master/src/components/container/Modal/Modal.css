@@ -8,13 +8,21 @@
   inset: 0;
   z-index: 999;
   display: flex;
-  align-items: center;
   justify-content: center;
+  /* align-items: flex-start + margin:auto en el contenido = centrado cuando cabe,
+     y arriba con scroll cuando es más alto que la pantalla (antes se cortaba la parte de arriba) */
+  align-items: flex-start;
   padding: 2rem 1.2rem;
-  background: rgba(15, 34, 64, 0.62);
+  background: rgba(43, 20, 10, 0.6);
   backdrop-filter: blur(4px);
   overflow-y: auto;
+  overscroll-behavior: contain; /* el scroll no "se pasa" a la página de atrás */
   animation: modalFade 0.25s ease;
+}
+
+.modal-body {
+  width: 100%;
+  margin: auto;
 }
 
 @keyframes modalFade {
@@ -36,7 +44,7 @@
   border: 0;
   border-radius: 50%;
   background: #fff;
-  color: #14264a;
+  color: #2b1d18;
   font-size: 1.8rem;
   cursor: pointer;
   box-shadow: 0 10px 24px -8px rgba(0, 0, 0, 0.5);

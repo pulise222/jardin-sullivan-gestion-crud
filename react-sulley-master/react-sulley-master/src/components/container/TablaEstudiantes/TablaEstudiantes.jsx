@@ -88,7 +88,7 @@ const TablaEstudiantes = ({ handleEdit }) => {
                 <td>
                   <div className="pn-person">
                     {/* Círculo con la inicial del nombre */}
-                    <span className="pn-avatar" aria-hidden="true">{(est.nombre || '?').charAt(0)}</span>
+                    <span className={`pn-avatar t${(est.nombre || '?').charCodeAt(0) % 4}`} aria-hidden="true">{(est.nombre || '?').charAt(0)}</span>
                     <div>
                       <strong>{est.nombre} {est.apellido}</strong>
                       <small>{est.correo_electronico || 'Sin correo'}</small>
@@ -96,14 +96,14 @@ const TablaEstudiantes = ({ handleEdit }) => {
                   </div>
                 </td>
                 <td>
-                  <span className="pn-chip">{est.tipo_documento || '—'}</span>{' '}
+                  <span className="pn-chip is-indigo">{est.tipo_documento || '—'}</span>{' '}
                   <span className="pn-muted">{est.numero_documento || ''}</span>
                 </td>
                 <td className="pn-muted">{formatDate(est.fecha_nacimiento)}</td>
                 <td className="pn-muted">{est.direccion || '—'}</td>
                 <td>
                   {est.curso ? (
-                    <span className="pn-chip is-accent">{est.curso}</span>
+                    <span className="pn-chip is-teal">{est.curso}</span>
                   ) : (
                     <span className="pn-muted">Sin curso</span>
                   )}
@@ -115,7 +115,7 @@ const TablaEstudiantes = ({ handleEdit }) => {
                   <div className="pn-actions">
                     <button
                       type="button"
-                      className="pn-icon-btn"
+                      className="pn-icon-btn is-edit"
                       onClick={() => handleEdit(est)}
                       aria-label={`Editar a ${est.nombre} ${est.apellido}`}
                       title="Editar"

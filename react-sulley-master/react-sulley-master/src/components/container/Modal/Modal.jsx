@@ -29,7 +29,8 @@ const Modal = ({ isOpen, onClose, children }) => {
       <button className="modal-close" onClick={onClose} aria-label="Cerrar ventana">
         <i className="fas fa-xmark" aria-hidden="true"></i>
       </button>
-      {children}
+      {/* .modal-body: si el contenido es más alto que la pantalla, la ventana entera se desplaza */}
+      <div className="modal-body">{children}</div>
     </div>
   );
 };

@@ -17,32 +17,50 @@
 */
 
 /* ---------- Colores y medidas base ---------- */
+/*
+  PALETA CÁLIDA: el color principal de cada panel es un naranja-rojo (admin), y los
+  neutros (texto y fondos) tienen un tono cálido para que todo combine.
+    --pn-side-1 / --pn-side-2 → degradado del menú lateral
+    --pn-accent               → color de botones, foco y detalles
+    --pn-accent-strong        → versión más oscura (texto sobre fondos claros, hover)
+    --pn-accent-soft          → versión muy clara (fondos suaves de íconos y chips)
+*/
 .pn-layout {
-  --pn-ink: #1b3158;                       /* texto principal (azul de la marca) */
-  --pn-ink-soft: rgba(27, 49, 88, 0.66);   /* texto secundario */
-  --pn-line: rgba(27, 49, 88, 0.1);        /* líneas y bordes suaves */
-  --pn-bg: #f4f6fa;                        /* fondo del contenido */
+  --pn-ink: #2b1d18;                       /* texto principal: marrón muy oscuro, cálido */
+  --pn-ink-soft: rgba(43, 29, 24, 0.64);   /* texto secundario */
+  --pn-line: rgba(43, 29, 24, 0.1);        /* líneas y bordes suaves */
+  --pn-bg: #fbf6f2;                        /* fondo del contenido: crema rosado */
   --pn-card: #ffffff;                      /* fondo de las tarjetas */
-  --pn-side: #14264a;                      /* fondo del menú lateral */
   --pn-radius: 1.8rem;
-  --pn-shadow: 0 1px 2px rgba(27, 49, 88, 0.06), 0 12px 28px -18px rgba(27, 49, 88, 0.28);
+  --pn-shadow: 0 1px 2px rgba(43, 29, 24, 0.06), 0 12px 28px -18px rgba(120, 52, 20, 0.35);
 
-  /* Acento por defecto (admin) */
-  --pn-accent: #f25141;
-  --pn-accent-strong: #d63a2a;             /* versión más oscura: botones con texto blanco */
-  --pn-accent-soft: #fde9e6;               /* versión muy clara: fondos suaves */
+  /* Administrador: naranja-rojo */
+  --pn-side-1: #e5571f;
+  --pn-side-2: #b93a12;
+  --pn-accent: #e5571f;
+  --pn-accent-strong: #b93a12;
+  --pn-accent-soft: #fdece3;
+
+  /* Colores de apoyo que combinan con el naranja (se usan en tarjetas, etiquetas y avatares) */
+  --pn-teal: #0f9d9a;      --pn-teal-soft: #dff4f3;    --pn-teal-strong: #0b7a78;
+  --pn-amber: #f5a524;     --pn-amber-soft: #fff1d6;   --pn-amber-strong: #a86a00;
+  --pn-indigo: #4a48a8;    --pn-indigo-soft: #e8e8f8;  --pn-indigo-strong: #37358a;
 }
 
 .pn-layout[data-role="profesor"] {
-  --pn-accent: #28a8e3;
-  --pn-accent-strong: #1583b8;
-  --pn-accent-soft: #e2f4fc;
+  --pn-side-1: #2a97d3;
+  --pn-side-2: #17699a;
+  --pn-accent: #2a97d3;
+  --pn-accent-strong: #17699a;
+  --pn-accent-soft: #e3f3fb;
 }
 
 .pn-layout[data-role="acudiente"] {
-  --pn-accent: #93c524;
-  --pn-accent-strong: #5f8a0f;
-  --pn-accent-soft: #eef7d6;
+  --pn-side-1: #7bae17;
+  --pn-side-2: #547a0c;
+  --pn-accent: #7bae17;
+  --pn-accent-strong: #547a0c;
+  --pn-accent-soft: #eff7d9;
 }
 
 /* ---------- Estructura: menú lateral + contenido ---------- */
@@ -57,78 +75,31 @@
   font-size: 1.5rem;
 }
 
-/* ---------- Menú lateral ---------- */
+/* ---------- Menú lateral (claro y limpio) ---------- */
 .pn-sidebar {
   position: sticky;       /* se queda fijo mientras el contenido hace scroll */
   top: 0;
   align-self: start;
   display: flex;
   flex-direction: column;
-  gap: 2.4rem;
+  gap: 2.6rem;
   height: 100vh;
-  padding: 2.4rem 1.8rem;
-  background: var(--pn-side);
-  color: #fff;
+  padding: 2.6rem 1.6rem 2rem;
+  background: #fff;
+  border-right: 1px solid var(--pn-line);
   overflow-y: auto;
 }
 
 .pn-brand {
   display: block;
-  padding: 0.4rem 0.6rem;
+  padding: 0 1rem;
   text-decoration: none;
 }
 
-/* Tarjeta con el usuario que inició sesión */
-.pn-user {
-  display: flex;
-  align-items: center;
-  gap: 1.2rem;
-  padding: 1.2rem;
-  border-radius: 1.8rem;
-  background: rgba(255, 255, 255, 0.07);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.pn-avatar {
-  display: grid;
-  place-items: center;
-  flex: none;
-  width: 4.4rem;
-  height: 4.4rem;
-  border-radius: 50%;
-  background: var(--pn-accent);
-  color: #fff;
-  font-family: var(--font-display, "Segoe UI", sans-serif);
-  font-size: 1.8rem;
-  font-weight: 800;
-  text-transform: uppercase;
-}
-
-.pn-user-name {
-  display: block;
-  overflow: hidden;
-  font-size: 1.5rem;
-  font-weight: 700;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.pn-user-role {
-  display: inline-block;
-  margin-top: 0.3rem;
-  padding: 0.2rem 0.9rem;
-  border-radius: 10rem;
-  background: var(--pn-accent);
-  color: #fff;
-  font-size: 1.1rem;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
 .pn-nav-label {
+  margin: 0 0 0.8rem;
   padding: 0 1.2rem;
-  color: rgba(255, 255, 255, 0.45);
+  color: var(--pn-ink-soft);
   font-size: 1.1rem;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -138,7 +109,7 @@
 .pn-nav {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.3rem;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -149,13 +120,13 @@
   position: relative;
   display: flex;
   align-items: center;
-  gap: 1.4rem;
+  gap: 1.3rem;
   width: 100%;
-  padding: 1.2rem 1.4rem;
+  padding: 1.1rem 1.2rem;
   border: 0;
-  border-radius: 1.4rem;
+  border-radius: 1.2rem;
   background: transparent;
-  color: rgba(255, 255, 255, 0.78);
+  color: var(--pn-ink-soft);
   font: inherit;
   font-size: 1.5rem;
   font-weight: 600;
@@ -166,36 +137,36 @@
 
 .pn-nav button i {
   width: 2.2rem;
-  font-size: 1.7rem;
+  font-size: 1.6rem;
   text-align: center;
-  opacity: 0.85;
+  transition: color 0.2s ease;
 }
 
 .pn-nav button:hover {
-  background: rgba(255, 255, 255, 0.07);
-  color: #fff;
+  background: #f6f1ed;
+  color: var(--pn-ink);
 }
 
-/* Opción activa: fondo claro, texto blanco y una barrita del color de acento a la izquierda */
+/* Opción activa: fondo suave del color del panel, texto e ícono en ese color y una marquita a la izquierda */
 .pn-nav button.is-active {
-  background: rgba(255, 255, 255, 0.12);
-  color: #fff;
+  background: var(--pn-accent-soft);
+  color: var(--pn-accent-strong);
+  font-weight: 700;
+}
+
+.pn-nav button.is-active i {
+  color: var(--pn-accent);
 }
 
 .pn-nav button.is-active::before {
   content: "";
   position: absolute;
-  left: -1.8rem;
-  top: 22%;
-  bottom: 22%;
+  left: -1.6rem;
+  top: 24%;
+  bottom: 24%;
   width: 0.4rem;
   border-radius: 0 0.4rem 0.4rem 0;
   background: var(--pn-accent);
-}
-
-.pn-nav button.is-active i {
-  color: var(--pn-accent);
-  opacity: 1;
 }
 
 .pn-nav button:focus-visible,
@@ -206,15 +177,54 @@
   outline-offset: 0.2rem;
 }
 
+/* Pie del menú: usuario + botón de cerrar sesión */
 .pn-sidebar-foot {
   margin-top: auto;
-  padding-top: 1.6rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 1.8rem;
+  border-top: 1px solid var(--pn-line);
 }
 
-.pn-sidebar-foot button:hover {
-  background: rgba(242, 81, 65, 0.16);
+.pn-user {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+
+/* Avatar (también se usa en las tablas) */
+.pn-avatar {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 4.4rem;
+  height: 4.4rem;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--pn-side-1), var(--pn-side-2));
   color: #fff;
+  font-family: var(--font-display, "Segoe UI", sans-serif);
+  font-size: 1.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.pn-user-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.pn-user-name {
+  display: block;
+  overflow: hidden;
+  font-size: 1.4rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pn-user-role {
+  display: block;
+  color: var(--pn-ink-soft);
+  font-size: 1.2rem;
+  font-weight: 600;
 }
 
 /* ---------- Contenido principal ---------- */
@@ -347,7 +357,7 @@
   height: 3.8rem;
   border: 0;
   border-radius: 1.1rem;
-  background: rgba(27, 49, 88, 0.07);
+  background: rgba(43, 29, 24, 0.07);
   color: var(--pn-ink);
   font-size: 1.4rem;
   cursor: pointer;
@@ -384,7 +394,7 @@
 
 .pn-table thead th {
   padding: 1.4rem 1.8rem;
-  background: #f8f9fc;
+  background: #fcf8f5;
   border-bottom: 1px solid var(--pn-line);
   color: var(--pn-ink-soft);
   font-size: 1.15rem;
@@ -410,7 +420,7 @@
 }
 
 .pn-table tbody tr:hover {
-  background: #fafbfe;
+  background: #fffaf6;
 }
 
 /* Celda de persona: avatar + nombre + dato secundario */
@@ -445,7 +455,7 @@
   align-items: center;
   padding: 0.3rem 1rem;
   border-radius: 10rem;
-  background: rgba(27, 49, 88, 0.08);
+  background: rgba(43, 29, 24, 0.08);
   color: var(--pn-ink);
   font-size: 1.2rem;
   font-weight: 700;
@@ -543,7 +553,7 @@
     position: fixed;
     z-index: 50;
     inset: 0;
-    background: rgba(15, 34, 64, 0.55);
+    background: rgba(43, 20, 10, 0.55);
     backdrop-filter: blur(3px);
   }
 
@@ -629,3 +639,246 @@
     width: 100%;
   }
 }
+
+/* ---------- Formularios dentro de ventanas emergentes (modal) ---------- */
+/* Tarjeta blanca del formulario: cabecera con ícono, campos en 2 columnas y botones abajo */
+.pn-modal {
+  width: min(100%, 64rem);
+  margin: 0 auto;
+  padding: 2.8rem;
+  border-radius: 2.6rem;
+  background: var(--pn-card);
+  color: var(--pn-ink);
+  font-family: var(--font-body, "Segoe UI", system-ui, sans-serif);
+  box-shadow: 0 40px 90px -30px rgba(43, 20, 10, 0.6);
+  animation: pnPop 0.35s var(--ease, cubic-bezier(0.16, 1, 0.3, 1));
+}
+
+@keyframes pnPop {
+  from {
+    opacity: 0;
+    transform: translateY(1.6rem) scale(0.97);
+  }
+}
+
+.pn-modal-head {
+  display: flex;
+  align-items: center;
+  gap: 1.6rem;
+  margin-bottom: 2.4rem;
+  padding-right: 5rem; /* deja libre el botón de cerrar */
+}
+
+.pn-modal-ico {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 5.2rem;
+  height: 5.2rem;
+  border-radius: 1.6rem;
+  background: var(--pn-accent-soft);
+  color: var(--pn-accent-strong);
+  font-size: 2.2rem;
+}
+
+.pn-modal-head h2 {
+  margin: 0 0 0.3rem;
+  font-family: var(--font-display, "Segoe UI", sans-serif);
+  font-size: 2.6rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.pn-modal-head p {
+  margin: 0;
+  color: var(--pn-ink-soft);
+  font-size: 1.4rem;
+}
+
+.pn-form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.8rem;
+}
+
+.pn-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  min-width: 0;
+}
+
+.pn-field label {
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.pn-field input,
+.pn-field select,
+.pn-field textarea {
+  width: 100%;
+  min-height: 4.8rem;
+  padding: 1rem 1.4rem;
+  border: 1.5px solid var(--pn-line);
+  border-radius: 1.3rem;
+  background: #fff;
+  color: var(--pn-ink);
+  font: inherit;
+  font-size: 1.5rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pn-field select {
+  appearance: none;
+  padding-right: 4rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%232B1D18' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1.3rem center;
+}
+
+.pn-field input:hover,
+.pn-field select:hover {
+  border-color: rgba(43, 29, 24, 0.35);
+}
+
+.pn-field input:focus,
+.pn-field select:focus,
+.pn-field textarea:focus {
+  outline: none;
+  border-color: var(--pn-accent);
+  box-shadow: 0 0 0 4px var(--pn-accent-soft);
+}
+
+.pn-field input[aria-invalid="true"],
+.pn-field select[aria-invalid="true"] {
+  border-color: #d63a2a;
+  background: #fff8f6;
+}
+
+.pn-field-error {
+  margin: 0;
+  color: #b3261a;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.pn-form-alert {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.8rem;
+  padding: 1.2rem 1.4rem;
+  border-radius: 1.3rem;
+  background: #fdece8;
+  border: 1px solid rgba(214, 58, 42, 0.35);
+  color: #a3261a;
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.pn-modal-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1.2rem;
+  margin-top: 2.6rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--pn-line);
+}
+
+.pn-btn:disabled {
+  opacity: 0.7;
+  cursor: progress;
+  transform: none;
+  box-shadow: none;
+}
+
+.pn-btn-ghost {
+  min-height: 4.6rem;
+  padding: 0 2.2rem;
+  border: 1.5px solid var(--pn-line);
+  border-radius: 1.4rem;
+  background: transparent;
+  color: var(--pn-ink);
+  font: inherit;
+  font-size: 1.5rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.pn-btn-ghost:hover {
+  background: rgba(43, 29, 24, 0.06);
+}
+
+.pn-btn-ghost:focus-visible {
+  outline: 0.3rem solid var(--pn-accent);
+  outline-offset: 0.2rem;
+}
+
+.pn-spinner-sm {
+  width: 1.8rem;
+  height: 1.8rem;
+  border: 3px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: pnSpin 0.8s linear infinite;
+}
+
+@media screen and (min-width: 640px) {
+  .pn-form-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .pn-span-2 {
+    grid-column: 1 / -1;
+  }
+}
+
+@media screen and (max-width: 560px) {
+  .pn-modal {
+    padding: 2rem 1.6rem;
+  }
+
+  .pn-modal-foot {
+    flex-direction: column-reverse;
+  }
+
+  .pn-modal-foot > * {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pn-modal,
+  .pn-spinner-sm {
+    animation: none;
+  }
+}
+
+/* ---------- Colores de apoyo en tarjetas, etiquetas y botones ---------- */
+/* Fondo del contenido con un resplandor suave de dos colores */
+.pn-main {
+  background:
+    radial-gradient(60rem 28rem at 100% 0%, rgba(15, 157, 154, 0.08), transparent 70%),
+    radial-gradient(50rem 26rem at 0% 0%, rgba(229, 87, 31, 0.07), transparent 70%);
+}
+
+/* Cada tarjeta de resumen con su propio color */
+.pn-kpi:nth-child(2) .pn-kpi-ico { background: var(--pn-teal-soft); color: var(--pn-teal-strong); }
+.pn-kpi:nth-child(3) .pn-kpi-ico { background: var(--pn-amber-soft); color: var(--pn-amber-strong); }
+.pn-kpi:nth-child(4) .pn-kpi-ico { background: var(--pn-indigo-soft); color: var(--pn-indigo-strong); }
+
+/* Variantes de etiquetas */
+.pn-chip.is-teal   { background: var(--pn-teal-soft);   color: var(--pn-teal-strong); }
+.pn-chip.is-amber  { background: var(--pn-amber-soft);  color: var(--pn-amber-strong); }
+.pn-chip.is-indigo { background: var(--pn-indigo-soft); color: var(--pn-indigo-strong); }
+
+/* Avatares de las tablas: cuatro colores que se reparten según la inicial del nombre */
+.pn-person .pn-avatar.t0 { background: var(--pn-accent-soft); color: var(--pn-accent-strong); }
+.pn-person .pn-avatar.t1 { background: var(--pn-teal-soft);   color: var(--pn-teal-strong); }
+.pn-person .pn-avatar.t2 { background: var(--pn-amber-soft);  color: var(--pn-amber-strong); }
+.pn-person .pn-avatar.t3 { background: var(--pn-indigo-soft); color: var(--pn-indigo-strong); }
+
+/* Botón de editar en verde azulado; el de eliminar sigue en rojo */
+.pn-icon-btn.is-edit { background: var(--pn-teal-soft); color: var(--pn-teal-strong); }
+.pn-icon-btn.is-edit:hover { background: var(--pn-teal-strong); color: #fff; }

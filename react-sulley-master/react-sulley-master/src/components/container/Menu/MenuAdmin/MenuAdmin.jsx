@@ -48,17 +48,10 @@ const MenuAdmin = ({ setView, currentView, onNavigate }) => {
 
   return (
     <aside className="pn-sidebar" aria-label="Menú del panel de administración">
-      <span className="pn-brand">
-        <Logo tone="light" />
-      </span>
-
-      {/* Tarjeta del usuario: inicial en un círculo del color de acento + nombre + rol */}
-      <div className="pn-user">
-        <span className="pn-avatar" aria-hidden="true">{displayName.charAt(0)}</span>
-        <div style={{ minWidth: 0 }}>
-          <span className="pn-user-name">{displayName}</span>
-          <span className="pn-user-role">Administrador</span>
-        </div>
+      <div>
+        <span className="pn-brand">
+          <Logo />
+        </span>
       </div>
 
       <div>
@@ -80,15 +73,24 @@ const MenuAdmin = ({ setView, currentView, onNavigate }) => {
         </ul>
       </div>
 
+      {/* Pie del menú: quién eres y el botón de cerrar sesión */}
       <div className="pn-sidebar-foot">
-        <ul className="pn-nav">
-          <li>
-            <button type="button" onClick={logout}>
-              <i className="fas fa-right-from-bracket" aria-hidden="true"></i>
-              Cerrar sesión
-            </button>
-          </li>
-        </ul>
+        <div className="pn-user">
+          <span className="pn-avatar" aria-hidden="true">{displayName.charAt(0)}</span>
+          <div className="pn-user-info">
+            <span className="pn-user-name">{displayName}</span>
+            <span className="pn-user-role">Administrador</span>
+          </div>
+          <button
+            type="button"
+            className="pn-icon-btn"
+            onClick={logout}
+            aria-label="Cerrar sesión"
+            title="Cerrar sesión"
+          >
+            <i className="fas fa-right-from-bracket" aria-hidden="true"></i>
+          </button>
+        </div>
       </div>
     </aside>
   );
