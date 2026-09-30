@@ -1,5 +1,6 @@
 // src/components/views/Profe/Perfil.jsx
 import React, { useMemo, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   useUpdateMyPersonaMutation,
@@ -8,16 +9,23 @@ import {
   useLazyGetMyPersonaQuery,
 } from '../../../features/people/personApi';
 import { setPersona, setCredentials } from '../../../features/user/userSlice';
+import { useGetCourseByTeacherQuery } from '../../../features/cursos/cursosApi';
+import { useMisEstudiantesQuery } from '../../../features/students/studentApi';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import './css/Profile.css';
+import toast from 'react-hot-toast';
+import './css/Profe.css';
 
 const Profile = () => {
   const dispatch = useDispatch();
   const persona = useSelector((s) => s.user.persona);
-  console.log(persona);
   
   const user = useSelector((s) => s.user.user);
+  // Asignaciones del profesor (curso + materia): ya las pidió Profe.jsx, así que vienen de la caché
+  // Este perfil lo usan el profesor y el acudiente: según el rol cambia el resumen de arriba
+  const esAcudiente = user?.rol === 'Acudiente';
+  const { data: asignaciones = [] } = useGetCourseByTeacherQuery(persona?.id, { skip: !persona?.id || esAcudiente });
+  const { data: hijos = [] } = useMisEstudiantesQuery(undefined, { skip: !esAcudiente });
 
   const [editMode, setEditMode] = useState(false);
   const [updateMyPersona, { isLoading }] = useUpdateMyPersonaMutation();
@@ -28,8 +36,8 @@ const Profile = () => {
   const [triggerGetMyPersona] = useLazyGetMyPersonaQuery();
   const fileInputRef = useRef(null);
 
-  const avatarUrl =
-    persona?.foto_url ||   'https://randomuser.me/api/portraits/men/1.jpg' ;
+  // Sin foto guardada mostramos la inicial (antes había una foto de stock de internet como respaldo)
+  const avatarUrl = persona?.foto_url || null;
 
   const handlePickAvatar = () => fileInputRef.current?.click();
 
@@ -43,7 +51,7 @@ const Profile = () => {
       sessionStorage.setItem('persona', JSON.stringify(fresh));
     } catch (err) {
       console.error(err);
-      alert('No se pudo subir la foto');
+      toast.error('No se pudo subir la foto');
     } finally {
       // permite volver a seleccionar el mismo archivo
       e.target.value = '';
@@ -60,7 +68,7 @@ const Profile = () => {
       sessionStorage.setItem('persona', JSON.stringify(fresh));
     } catch (err) {
       console.error(err);
-      alert('No se pudo eliminar la foto');
+      toast.error('No se pudo eliminar la foto');
     }
   };
   // --- fin avatar ---
@@ -129,11 +137,11 @@ const Profile = () => {
         );
       }
 
-      alert('Perfil actualizado');
+      toast.success('Perfil actualizado');
       setEditMode(false);
     } catch (err) {
       console.error(err);
-      alert('No se pudo actualizar el perfil');
+      toast.error('No se pudo actualizar el perfil');
     }
   };
 
@@ -144,229 +152,168 @@ const Profile = () => {
     onSubmit,
   });
 
-  if (!persona || !user) return <p>Cargando perfil…</p>;
+  if (!persona || !user) {
+    return <div className="pn-state"><span className="pn-spinner" /><strong>Cargando perfil…</strong></div>;
+  }
+
+  // Campo de texto conectado a Formik: evita repetir 8 bloques casi iguales
+  const campo = (name, label, type = 'text') => (
+    <div className="pn-field" key={name}>
+      <label htmlFor={name}>{label}</label>
+      <input
+        id={name}
+        type={type}
+        name={name}
+        value={formik.values[name]}
+        onChange={formik.handleChange}
+        onBlur={formik.handleBlur}
+        aria-invalid={formik.touched[name] && formik.errors[name] ? 'true' : 'false'}
+      />
+      {formik.touched[name] && formik.errors[name] && (
+        <p className="pn-field-error" role="alert">{formik.errors[name]}</p>
+      )}
+    </div>
+  );
+
+  // Fila de datos: ícono + etiqueta pequeña + valor
+  const dato = (icono, etiqueta, valor) => (
+    <li className="pf-info-row" key={etiqueta}>
+      <span className="pf-info-ico" aria-hidden="true"><i className={`fas ${icono}`}></i></span>
+      <div>
+        <small>{etiqueta}</small>
+        <strong>{valor || '—'}</strong>
+      </div>
+    </li>
+  );
+
+  // Edad a partir de la fecha de nacimiento (solo para mostrarla junto a la fecha)
+  const edad = (() => {
+    if (!persona.fecha_nacimiento) return null;
+    const n = new Date(persona.fecha_nacimiento);
+    if (Number.isNaN(n)) return null;
+    const hoy = new Date();
+    let a = hoy.getFullYear() - n.getFullYear();
+    if (hoy < new Date(hoy.getFullYear(), n.getMonth(), n.getDate())) a -= 1;
+    return a;
+  })();
+  const nacimiento = persona.fecha_nacimiento
+    ? `${new Date(persona.fecha_nacimiento + 'T00:00:00').toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' })}${edad != null ? ` · ${edad} años` : ''}`
+    : null;
+
+  // Resumen de lo que dicta (sale de la consulta de cursos que ya hace Profe.jsx: está en caché)
+  const totalCursos = new Set(asignaciones.map((c) => c.curso?.id)).size;
+  const totalMaterias = new Set(asignaciones.map((c) => c.materia?.id)).size;
 
   return (
-    <div className="perfil-wrapper-persona">
-      <h2>Perfil</h2>
-
-      {/* --- NUEVO: Bloque avatar arriba, igual estilo de tarjeta --- */}
-      <section className="perfil-card" style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-        <div
-          style={{
-            width: 88,
-            height: 88,
-            borderRadius: '50%',
-            overflow: 'hidden',
-            background: '#f2f2f2',
-            border: '1px solid #e6e6e6',
-            flex: '0 0 auto',
-          }}
-        >
-          <img
-            src={avatarUrl || '/Imagen/user-placeholder.png'}
-            alt="Foto de perfil"
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-          />
-        </div>
-
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <button type="button-perfil" onClick={handlePickAvatar} disabled={uploadingAvatar || deletingAvatar}>
-            {uploadingAvatar ? 'Subiendo…' : 'Cambiar foto'}
-          </button>
-          {/* {avatarUrl ? (
+    <div className="pf-profile">
+      {/* Portada: franja de color, foto que sobresale y acciones principales */}
+      <section className="pn-card pf-cover">
+        <div className="pf-cover-bg" aria-hidden="true" />
+        <div className="pf-cover-body">
+          <div className="pf-photo-wrap">
+            <div className="pf-photo">
+              {avatarUrl
+                ? <img src={avatarUrl} alt="Foto de perfil" />
+                : <span className="pf-photo-initial" aria-hidden="true">{(persona.nombre || "?").charAt(0)}</span>}
+            </div>
             <button
               type="button"
-              className="secondary"
-              onClick={handleDeleteAvatar}
+              className="pf-photo-btn"
+              onClick={handlePickAvatar}
               disabled={uploadingAvatar || deletingAvatar}
+              aria-label="Cambiar foto de perfil"
+              title="Cambiar foto"
             >
-              {deletingAvatar ? 'Eliminando…' : 'Quitar foto'}
+              <i className={`fas ${uploadingAvatar ? 'fa-spinner fa-spin' : 'fa-camera'}`} aria-hidden="true"></i>
             </button>
-          ) : null} */}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            style={{ display: 'none' }}
-            onChange={handleAvatarChange}
-          />
+            <input ref={fileInputRef} type="file" accept="image/*" hidden onChange={handleAvatarChange} />
+          </div>
+
+          <div className="pf-profile-name">
+            <h2>{persona.nombre} {persona.apellido}</h2>
+            <p><i className="fas fa-envelope" aria-hidden="true"></i> {user.email}</p>
+            <span className="pn-chip is-accent">{user.rol}</span>
+          </div>
+
+          {!editMode && (
+            <div className="pf-cover-actions">
+              <button type="button" className="pn-btn" onClick={() => setEditMode(true)}>
+                <i className="fas fa-pen" aria-hidden="true"></i> Editar perfil
+              </button>
+              {/* Link (no <a href>): navega sin recargar toda la página */}
+              <Link className="pn-btn-ghost" to="/cambiar-contraseña">
+                <i className="fas fa-key" aria-hidden="true"></i> Cambiar contraseña
+              </Link>
+            </div>
+          )}
         </div>
       </section>
-      {/* --- fin bloque avatar --- */}
 
       {!editMode ? (
-        <div className="perfil-read">
-          <section className="perfil-card">
-            <div className="perfil-dl">
-              <h3>Datos personales</h3>
-              <p>
-                <strong>Nombre: </strong>
-                {persona.nombre} {persona.apellido}
-              </p>
-              <p>
-                <strong>Documento: </strong>
-                {persona.tipo_documento} {persona.numero_documento}
-              </p>
-              <p>
-                <strong>Teléfono: </strong>
-                {persona.telefono}
-              </p>
-              <p>
-                <strong>Dirección: </strong>
-                {persona.direccion}
-              </p>
-              <p>
-                <strong>Nacimiento: </strong>
-                {persona.fecha_nacimiento}
-              </p>
-            </div>
+        <>
+          {/* Resumen rápido */}
+          <section className="pf-stats" aria-label="Resumen">
+            {esAcudiente ? (
+              <>
+                <div className="pf-stat"><strong>{hijos.length}</strong><span>Hijos en el jardín</span></div>
+                <div className="pf-stat"><strong>{new Set(hijos.map((h) => h.curso?.id).filter(Boolean)).size}</strong><span>Cursos</span></div>
+              </>
+            ) : (
+              <>
+                <div className="pf-stat"><strong>{totalCursos}</strong><span>Cursos a cargo</span></div>
+                <div className="pf-stat"><strong>{totalMaterias}</strong><span>Materias</span></div>
+                <div className="pf-stat"><strong>{asignaciones.length}</strong><span>Clases asignadas</span></div>
+              </>
+            )}
           </section>
 
-          <section className="perfil-card">
-            <div className="perfil-dl">
-              <h3>Usuario</h3>
-              <p>
-                <strong>Email/Usuario: </strong>
-                {user.email}
-              </p>
-              <p>
-                <strong>Rol: </strong>
-                {user.rol}
-              </p>
-            </div>
-          </section>
+          <div className="pn-split">
+            <section className="pn-card pn-panel">
+              <div className="pn-panel-head"><h2>Datos personales</h2></div>
+              <ul className="pf-info">
+                {dato('fa-id-card', 'Documento', `${persona.tipo_documento || ''} ${persona.numero_documento || ''}`.trim())}
+                {dato('fa-phone', 'Teléfono', persona.telefono)}
+                {dato('fa-location-dot', 'Dirección', persona.direccion)}
+                {dato('fa-cake-candles', 'Nacimiento', nacimiento)}
+              </ul>
+            </section>
 
-          <div className="perfil-actions">
-            <button onClick={() => setEditMode(true)}>Editar</button>
-            <a className="link" href="/cambiar-contraseña">
-              Cambiar contraseña
-            </a>
+            <section className="pn-card pn-panel">
+              <div className="pn-panel-head"><h2>Cuenta</h2></div>
+              <ul className="pf-info">
+                {dato('fa-envelope', 'Correo / usuario', user.email)}
+                {dato('fa-user-shield', 'Rol', user.rol)}
+                {dato('fa-lock', 'Contraseña', '••••••••')}
+              </ul>
+            </section>
           </div>
-        </div>
+        </>
       ) : (
-        <form className="perfil-form" onSubmit={formik.handleSubmit}>
-          <h3>Editar Perfil</h3>
+        <form className="pn-card pn-panel" onSubmit={formik.handleSubmit} noValidate>
+          <div className="pn-panel-head"><h2>Editar perfil</h2></div>
 
-          <div className="grid">
-            <label>
-              Nombre
-              <input
-                name="nombre"
-                value={formik.values.nombre}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-              />
-              {formik.touched.nombre && formik.errors.nombre && (
-                <span className="error">{formik.errors.nombre}</span>
-              )}
-            </label>
-
-            <label>
-              Apellido
-              <input
-                name="apellido"
-                value={formik.values.apellido}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-              />
-              {formik.touched.apellido && formik.errors.apellido && (
-                <span className="error">{formik.errors.apellido}</span>
-              )}
-            </label>
-
-            <label>
-              Tipo de documento
-              <input
-                name="tipo_documento"
-                value={formik.values.tipo_documento}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-              />
-              {formik.touched.tipo_documento && formik.errors.tipo_documento && (
-                <span className="error">{formik.errors.tipo_documento}</span>
-              )}
-            </label>
-
-            <label>
-              Número de documento
-              <input
-                name="numero_documento"
-                value={formik.values.numero_documento}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-              />
-              {formik.touched.numero_documento && formik.errors.numero_documento && (
-                <span className="error">{formik.errors.numero_documento}</span>
-              )}
-            </label>
-
-            <label>
-              Teléfono
-              <input
-                name="telefono"
-                value={formik.values.telefono}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-              />
-              {formik.touched.telefono && formik.errors.telefono && (
-                <span className="error">{formik.errors.telefono}</span>
-              )}
-            </label>
-
-            <label>
-              Dirección
-              <input
-                name="direccion"
-                value={formik.values.direccion}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-              />
-              {formik.touched.direccion && formik.errors.direccion && (
-                <span className="error">{formik.errors.direccion}</span>
-              )}
-            </label>
-
-            <label>
-              Fecha de nacimiento
-              <input
-                type="date"
-                name="fecha_nacimiento"
-                value={formik.values.fecha_nacimiento}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-              />
-              {formik.touched.fecha_nacimiento && formik.errors.fecha_nacimiento && (
-                <span className="error">{formik.errors.fecha_nacimiento}</span>
-              )}
-            </label>
-
-            <label>
-              Email
-              <input
-                type="email"
-                name="usuario_email"
-                value={formik.values.usuario_email}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-              />
-              {formik.touched.usuario_email && formik.errors.usuario_email && (
-                <span className="error">{formik.errors.usuario_email}</span>
-              )}
-            </label>
+          <h3 className="pf-form-sec">Datos personales</h3>
+          <div className="pn-form-grid">
+            {campo('nombre', 'Nombre')}
+            {campo('apellido', 'Apellido')}
+            {campo('tipo_documento', 'Tipo de documento')}
+            {campo('numero_documento', 'Número de documento')}
+            {campo('telefono', 'Teléfono')}
+            {campo('fecha_nacimiento', 'Fecha de nacimiento', 'date')}
+            <div className="pn-span-2">{campo('direccion', 'Dirección')}</div>
           </div>
 
-          <div className="perfil-actions">
-            <button
-              type="button"
-              className="secondary"
-              onClick={() => setEditMode(false)}
-              disabled={isLoading}
-            >
+          <h3 className="pf-form-sec">Acceso</h3>
+          <div className="pn-form-grid">
+            <div className="pn-span-2">{campo('usuario_email', 'Correo', 'email')}</div>
+          </div>
+
+          <div className="pn-form-actions">
+            <button type="button" className="pn-btn-ghost" onClick={() => { formik.resetForm(); setEditMode(false); }} disabled={isLoading}>
               Cancelar
             </button>
-            <button type="submit" disabled={isLoading}>
-              {isLoading ? 'Guardando…' : 'Guardar cambios'}
+            <button type="submit" className="pn-btn" disabled={isLoading}>
+              <i className="fas fa-check" aria-hidden="true"></i> {isLoading ? 'Guardando…' : 'Guardar cambios'}
             </button>
           </div>
         </form>

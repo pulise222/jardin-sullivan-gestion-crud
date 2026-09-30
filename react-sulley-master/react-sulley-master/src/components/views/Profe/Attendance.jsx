@@ -6,7 +6,8 @@ import {
   useUpsertAsistenciaMutation,
   asistenciaApi,
 } from '../../../features/asistencia/asistenciaApi';
-import './css/Attendance.css';
+import toast from 'react-hot-toast';
+import './css/Profe.css';
 
 const ESTADOS = ['Presente', 'Tarde', 'Ausente'];
 
@@ -48,20 +49,18 @@ const Attendance = () => {
     if (!editing) setSelectedEstado(null);
   }, [editing]);
 
-  if (!cpmId) return <p>Selecciona un curso/materia para ver la asistencia.</p>;
-  if (isLoading) return <p>Cargando asistencia…</p>;
-  if (isError) return <p>Error cargando asistencia.</p>;
+  if (!cpmId) return <p className="pn-results-hint">Selecciona un curso para ver la asistencia.</p>;
+  if (isLoading) return <div className="pn-state"><span className="pn-spinner" /><strong>Cargando asistencia…</strong></div>;
+  if (isError) return <div className="pn-state"><i className="fas fa-triangle-exclamation" /><strong>No se pudo cargar la asistencia</strong></div>;
   if (!data) return null;
 
   const { curso, materia, fechas = [], estudiantes = [] } = data;
   const allFechas = data.fechas || fechas;
 
-  const cellIcon = (estado) => {
-    if (estado === 'Presente') return '✅';
-    if (estado === 'Tarde') return '⏰';
-    if (estado === 'Ausente') return '❌';
-    return '—';
-  };
+  // Cada estado es una etiqueta de color: verde (presente), amarillo (tarde), rosa (ausente)
+  const CHIP = { Presente: 'is-teal', Tarde: 'is-amber', Ausente: 'is-accent' };
+  const cellIcon = (estado) =>
+    estado ? <span className={`pn-chip ${CHIP[estado]}`}>{estado}</span> : <span className="pf-muted">—</span>;
 
   const isEditingCell = (estudianteId, fecha) =>
     editing && editing.estudianteId === estudianteId && editing.fecha === fecha;
@@ -107,6 +106,7 @@ const Attendance = () => {
       await saveEstado(estudianteId, fecha, estado);
     } catch (err) {
       console.error('Error al guardar asistencia', err);
+      toast.error('No se pudo guardar la asistencia');
     } finally {
       setSavingMap((prev) => {
         const { [key]: _omit, ...rest } = prev;
@@ -137,34 +137,34 @@ const Attendance = () => {
   };
 
   return (
-    <div className="attendance-wrapper">
-      <div className="attendance-toolbar">
-        <div className="left">
+    <div className="pf-attendance">
+      <div className="pn-toolbar pf-toolbar">
+        <div>
           <h2>
             Asistencia — {curso?.nombre_curso} / {materia?.nombre}
           </h2>
         </div>
-        <div className="right">
-          <label className="fecha-label">
+        <div className="pn-toolbar-actions">
+          <label className="pf-date">
             Fecha:
             <input
               type="date"
-              className="fecha-input"
+              className="pf-input"
               value={fechaSeleccionada}
               onChange={(e) => setFechaSeleccionada(e.target.value)}
             />
           </label>
-          <button className="btn-primary" onClick={handleTomarAsistencia}>
+          <button type="button" className="pn-btn" onClick={handleTomarAsistencia}>
             Tomar asistencia
           </button>
         </div>
       </div>
 
       {allFechas.length === 0 ? (
-        <p>No hay registros de asistencia para este curso.</p>
+        <p className="pn-results-hint">Aún no hay asistencia registrada. Elige una fecha y pulsa «Tomar asistencia».</p>
       ) : (
-        <div className="attendance-table-container">
-          <table className="attendance-table">
+        <div className="pn-card pn-table-wrap">
+          <table className="pn-table pf-grid">
             <thead>
               <tr>
                 <th style={{ width: 60 }}>No</th>
@@ -195,7 +195,7 @@ const Attendance = () => {
                           {isEditingCell(e.id, f) && !quickEditActive ? (
                             <div className="cell-editor">
                               <select
-                                className="cell-select"
+                                className="pf-input"
                                 value={selectedEstado ?? 'Presente'}
                                 onChange={(ev) => setSelectedEstado(ev.target.value)}
                                 disabled={isSaving}
@@ -219,7 +219,7 @@ const Attendance = () => {
                               <div className="cell-actions">
                                 <button
                                   type="button"
-                                  className="btn-save"
+                                  className="pn-btn pn-btn-small"
                                   onClick={() =>
                                     saveEstado(e.id, f, selectedEstado ?? 'Presente')
                                       .catch(() => {})
@@ -232,7 +232,7 @@ const Attendance = () => {
                                 </button>
                                 <button
                                   type="button"
-                                  className="btn-cancel"
+                                  className="pn-btn-ghost pn-btn-small"
                                   onClick={cancelEdit}
                                   disabled={isSaving}
                                   title="Cancelar"
@@ -245,7 +245,7 @@ const Attendance = () => {
                             // Edición rápida: valor inicial = '' (placeholder).
                             // Así, al seleccionar "Presente" por primera vez, se dispara onChange y se crea la asistencia.
                             <select
-                              className="cell-select"
+                              className="pf-input"
                               value={estado ?? ''}            /* <-- clave: placeholder vacío */
                               disabled={savingThis}
                               onChange={(ev) => {
@@ -267,7 +267,7 @@ const Attendance = () => {
                             <>
                               <span className="cell-estado">{cellIcon(estado)}</span>
                               <button
-                                className="cell-edit-btn"
+                                className="pf-link-btn"
                                 onClick={() => startEdit(e.id, f, estado)}
                                 title={estado ? 'Editar asistencia' : 'Marcar asistencia'}
                               >

@@ -1,77 +1,86 @@
-import React from 'react'
-import "./MenuProfe.css"
-import { useSelector, useDispatch } from 'react-redux'
+// src/components/container/Menu/MenuProfe/MenuProfe.jsx
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { logoutUser } from '../../../../features/user/userSlice'
+import { logoutUser } from '../../../../features/user/userSlice';
+import Logo from '../../../common/Logo';
+// Los estilos (clases "pn-…") viven en src/styles/panel.css y son los mismos del panel de administración.
 
-const MenuProfe = ({setView}) => {
+/* Secciones del panel del profesor. `icon` es una clase de Font Awesome. */
+const SECTIONS = [
+  { id: 'inicio', label: 'Inicio', icon: 'fa-house' },
+  { id: 'cursos', label: 'Mis cursos', icon: 'fa-chalkboard-user' },
+  { id: 'eventos', label: 'Eventos', icon: 'fa-calendar-days' },
+  { id: 'perfil', label: 'Mi perfil', icon: 'fa-user' },
+];
+
+/*
+  Props:
+    setView      → cambia la sección que se muestra
+    currentView  → sección activa (para resaltarla)
+    onNavigate   → se llama al elegir una sección (en celular cierra el menú)
+*/
+const MenuProfe = ({ setView, currentView, onNavigate }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const claseActiva = useSelector(s => s.clase?.current?.status === 'running');
-  const usuario = useSelector(state => state.user.user);
-  const persona = useSelector(state => state.user.persona);
-  
-  const showUserProfile = () => {
-    setView("perfil");
-    // console.log("Usuario actual:", usuario);
-  }
+  const user = useSelector((s) => s.user.user) || {};
+  const persona = useSelector((s) => s.user.persona) || {};
+  const displayName = persona.nombre || user.username || 'Profesor';
 
-    const logout = () => {
-    // Limpiar las credenciales
+  // Mientras se mira un curso, "Mis cursos" sigue resaltado (el detalle cuelga de esa sección)
+  const activeId = currentView === 'curso-seleccionado' ? 'cursos' : currentView;
+
+  const logout = () => {
     dispatch(logoutUser());
-
-    // Redirigir al login
     navigate('/login', { replace: true });
   };
-  
+
+  const choose = (id) => {
+    setView(id);
+    onNavigate?.();
+  };
+
   return (
-    <aside className="sidebar">
-      <div className="profile">
-          <img src={persona? persona?.foto_url : "https://randomuser.me/api/portraits/men/1.jpg"} alt="Foto de perfil" className="profile-img"/>
-          <span>Profe Juan</span>
+    <aside className="pn-sidebar" aria-label="Menú del panel del profesor">
+      <div>
+        <span className="pn-brand">
+          <Logo tone="light" />
+        </span>
       </div>
-      <div className="navigation">
 
-        <ul className='menu-profe'>
-            
-            <li onClick={()=>setView("inicio")}>
-              <span className="icon"><ion-icon name="grid-outline"></ion-icon></span>  
-              <span className="text">Inicio</span>
+      <div>
+        <p className="pn-nav-label">Mi aula</p>
+        <ul className="pn-nav">
+          {SECTIONS.map((section) => (
+            <li key={section.id}>
+              <button
+                type="button"
+                className={activeId === section.id ? 'is-active' : ''}
+                aria-current={activeId === section.id ? 'page' : undefined}
+                onClick={() => choose(section.id)}
+              >
+                <span className="pn-nav-ico" aria-hidden="true"><i className={`fas ${section.icon}`}></i></span>
+                {section.label}
+              </button>
             </li>
-            
-            <li onClick={() => {
-                                if (claseActiva) return; 
-                                setView("cursos");
-                              }} className={claseActiva ? 'disabled' : ''} >
-              <span className="icon"><ion-icon name="people-outline"></ion-icon></span>
-              <span className="text">Cursos</span>
-            </li>
-            
-            {/* <li onClick={()=>setView("asistencia")}>
-              <span className='icon'><ion-icon name="hand-left-outline"></ion-icon></span>
-              <span className="text">Asistencia</span>
-            </li>
-             */}
-            <li onClick={()=>setView("eventos")}>
-              <span className="icon"><ion-icon name="book-outline"></ion-icon></span>
-              <span className="text">Eventos</span>
-            </li>
-
-            <li onClick={showUserProfile}>
-            {/* <li onClick={()=>setView("perfil")}>Perfil</li> */}
-              <span className="icon"><ion-icon name="person-outline"></ion-icon></span>
-              <span className="text">Perfil</span>
-            </li>
-
-            <li onClick={logout}>
-              <span className="icon"><ion-icon name="book-outline"></ion-icon></span>
-              <span className="text">Cerrar Sesion</span>
-            </li>
+          ))}
         </ul>
       </div>
-    </aside>
-  )
-}
 
-export default MenuProfe
+      <div className="pn-sidebar-foot">
+        <div className="pn-user">
+          <span className="pn-avatar" aria-hidden="true">{displayName.charAt(0)}</span>
+          <div className="pn-user-info">
+            <span className="pn-user-name">{displayName}</span>
+            <span className="pn-user-role">Profesor</span>
+          </div>
+          <button type="button" className="pn-icon-btn" onClick={logout} aria-label="Cerrar sesión" title="Cerrar sesión">
+            <i className="fas fa-right-from-bracket" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+    </aside>
+  );
+};
+
+export default MenuProfe;

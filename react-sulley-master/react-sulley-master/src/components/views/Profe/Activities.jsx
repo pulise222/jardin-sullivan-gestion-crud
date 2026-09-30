@@ -2,22 +2,22 @@ import React, { useMemo, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
+import toast from 'react-hot-toast';
 
 import {
   useGetActividadesPorCursoQuery,
   useCrearActividadEnCursoMutation,
-  useGetEntregasByActividadQuery,
-  useActualizarEntregaMutation,
-  useActualizarActividadMutation,   // <-- NUEVO
-  useEliminarActividadMutation,     // <-- NUEVO
+  useActualizarActividadMutation,
+  useEliminarActividadMutation,
+  useGetMatrizCalificacionesPorCursoQuery,
 } from '../../../features/actividades/actividadesApi';
 
-import {
-  setActividadSeleccionada,
-  toggleFormulario,
-} from '../../../features/actividades/actividadesSlice';
+import { toggleFormulario } from '../../../features/actividades/actividadesSlice';
 
-import './css/Activities.css';
+import Modal from '../../container/Modal/Modal';
+import { ModalCard } from '../../forms/ui/FormKit';
+import useConfirm from '../../../hooks/useConfirm';
+import './css/Profe.css';
 
 const schemaActividad = Yup.object({
   titulo: Yup.string().required('Requerido'),
@@ -26,344 +26,227 @@ const schemaActividad = Yup.object({
   fecha_entrega: Yup.date().nullable(true),
 });
 
+/*
+  Actividades de UNA materia en UN curso: crear, cambiar la fecha o eliminar.
+  Antes cada tarjeta tenía un botón «Ver entregas» con una segunda tabla para calificar;
+  como la evaluación ya se hace en la pestaña «Notas» (una sola planilla), ese botón
+  duplicaba el trabajo y se quitó. Aquí cada tarjeta solo muestra el avance:
+  cuántos niños ya fueron evaluados en esa actividad.
+*/
 const Activities = () => {
   const dispatch = useDispatch();
+  const [confirm, confirmDialog] = useConfirm();
 
-  // CPM del curso+materia seleccionado
-  const cpm = useSelector((s) =>
-    s.clase?.claseEnCurso?.dictada_por ?? s.courses?.curso_profesor_materia
-  );
+  // Asignación (curso + materia) elegida en «Mis cursos»
+  const cpm = useSelector((s) => s.courses?.curso_profesor_materia);
   const cursoId = cpm?.curso?.id;
   const cpmId = cpm?.id;
 
   const mostrarFormulario = useSelector((s) => s.actividades.mostrarFormulario);
-  const actividadSeleccionada = useSelector((s) => s.actividades.actividadSeleccionada);
-  const actividadId = actividadSeleccionada?.id || null;
 
-  // Lista de actividades
-  const { data: actividades, isLoading, refetch } = useGetActividadesPorCursoQuery(
-    { cursoId, todas: 0 },
+  // cpmId: trae solo las actividades de ESTA materia (antes se mezclaban con las de otras materias)
+  const { data: actividades, isLoading } = useGetActividadesPorCursoQuery(
+    { cursoId, cpmId },
     { skip: !cursoId }
   );
 
-  // Filtro server-side para la tabla relación
-  const [detalleFiltro, setDetalleFiltro] = useState('entregadas'); // 'entregadas' | 'pendientes' | 'todas'
-
-  // Entregas de la actividad (RELACIÓN)
-  const {
-    data: entregas,
-    isLoading: loadingEntregas,
-    refetch: refetchEntregas,
-  } = useGetEntregasByActividadQuery(
-    { actividadId, estado: detalleFiltro },
-    { skip: !actividadId }
+  // La planilla se usa aquí solo para contar cuántos niños están evaluados por actividad
+  const { data: planilla } = useGetMatrizCalificacionesPorCursoQuery(
+    { cursoId, cpmId },
+    { skip: !cursoId }
   );
 
-  // Mutations
+  const avance = useMemo(() => {
+    const total = planilla?.estudiantes?.length || 0;
+    const evaluados = {};
+    for (const c of planilla?.celdas || []) {
+      if (c.calificacion != null) evaluados[c.actividad_id] = (evaluados[c.actividad_id] || 0) + 1;
+    }
+    return { total, evaluados };
+  }, [planilla]);
+
   const [crearActividad] = useCrearActividadEnCursoMutation();
-  const [actualizarEntrega] = useActualizarEntregaMutation();
-  const [actualizarActividad] = useActualizarActividadMutation();  // <-- NUEVO
-  const [eliminarActividad] = useEliminarActividadMutation();      // <-- NUEVO
+  const [actualizarActividad] = useActualizarActividadMutation();
+  const [eliminarActividad] = useEliminarActividadMutation();
+
+  // Ventana pequeña para cambiar la fecha de entrega: { actividad } | null
+  const [dialogFecha, setDialogFecha] = useState(null);
+  const [nuevaFecha, setNuevaFecha] = useState('');
 
   const hoyISO = useMemo(() => new Date().toISOString().slice(0, 10), []);
 
   const handleCrearActividad = async (values, { resetForm }) => {
     if (!cursoId || !cpmId) {
-      alert('No hay CPM/Curso seleccionado.');
+      toast.error('No hay un curso seleccionado.');
       return;
     }
     try {
-      await crearActividad({
-        cursoId,
-        payload: { ...values, cpm_id: cpmId },
-      }).unwrap();
+      await crearActividad({ cursoId, payload: { ...values, cpm_id: cpmId } }).unwrap();
       resetForm();
       dispatch(toggleFormulario(false));
-      refetch();
+      toast.success('Actividad creada');
     } catch (e) {
       console.error(e);
-      alert('No se pudo crear la actividad');
+      toast.error('No se pudo crear la actividad');
     }
   };
 
-  const handleVerDetalle = (actividad) => {
-    dispatch(setActividadSeleccionada(actividad));
-    setDetalleFiltro('entregadas'); // por defecto, las entregadas
+  const abrirFecha = (actividad) => {
+    setNuevaFecha(actividad.fecha_entrega ?? '');
+    setDialogFecha(actividad);
   };
 
-  // >>> NUEVO: actualizar fecha de entrega de la actividad
-  const handleActualizarFechaEntrega = async () => {
-    if (!actividadId) return;
-    const nueva = prompt('Nueva fecha de entrega (YYYY-MM-DD):', actividadSeleccionada?.fecha_entrega ?? '');
-    if (!nueva) return;
+  const guardarFecha = async () => {
+    if (!nuevaFecha) return;
     try {
-      const updated = await actualizarActividad({
-        actividadId,
-        data: { fecha_entrega: nueva },
-      }).unwrap();
-
-      // Actualizo la actividad en la lista y en la selección visible
-      dispatch(setActividadSeleccionada({ ...actividadSeleccionada, ...updated }));
-      refetch(); // refresca la lista (para ver el nuevo valor en la tarjeta)
-      alert('Fecha de entrega actualizada.');
+      await actualizarActividad({ actividadId: dialogFecha.id, data: { fecha_entrega: nuevaFecha } }).unwrap();
+      toast.success('Fecha de entrega actualizada');
+      setDialogFecha(null);
     } catch (e) {
       console.error(e);
-      alert('No se pudo actualizar la fecha de entrega');
+      toast.error('No se pudo actualizar la fecha de entrega');
     }
   };
 
-  // >>> NUEVO: eliminar actividad
-  const handleEliminarActividad = async () => {
-    if (!actividadId) return;
-    if (!confirm('¿Eliminar esta actividad?')) return;
+  const handleEliminar = async (actividad) => {
+    const ok = await confirm({
+      title: `¿Eliminar «${actividad.titulo}»?`,
+      message: 'También se borrarán las evaluaciones de los niños en esta actividad.',
+      confirmLabel: 'Eliminar',
+      danger: true,
+    });
+    if (!ok) return;
     try {
-      await eliminarActividad(actividadId).unwrap();
-      dispatch(setActividadSeleccionada(null));
-      refetch(); // refresca la lista general
-      alert('Actividad eliminada.');
+      await eliminarActividad(actividad.id).unwrap();
+      toast.success('Actividad eliminada');
     } catch (e) {
       console.error(e);
-      alert('No se pudo eliminar la actividad');
+      toast.error('No se pudo eliminar la actividad');
     }
   };
 
-  // Acciones sobre una fila de actividad_estudiante
-  const marcarEntregada = async (ae) => {
-    try {
-      await actualizarEntrega({
-        actividadEstudianteId: ae.id,
-        actividadId,
-        data: { entregado_en: new Date().toISOString() },
-      }).unwrap();
-      refetchEntregas();
-    } catch (e) {
-      console.error(e);
-      alert('No se pudo marcar como entregada');
-    }
-  };
-
-  const calificar = async (ae) => {
-    if (!ae.entregado_en) {
-      alert('No puedes calificar hasta que esté marcada como entregada.');
-      return;
-    }
-    const notaStr = prompt('Nota (0-5, admite 0.0–5.0):', ae.calificacion ?? '');
-    if (notaStr === null) return;
-    const nota = Number(notaStr);
-    if (Number.isNaN(nota) || nota < 0 || nota > 5) {
-      alert('Nota inválida. Debe estar entre 0 y 5.');
-      return;
-    }
-    try {
-      await actualizarEntrega({
-        actividadEstudianteId: ae.id,
-        actividadId,
-        data: { calificacion: nota },
-      }).unwrap();
-      refetchEntregas();
-    } catch (e) {
-      console.error(e);
-      alert('No se pudo calificar');
-    }
-  };
-
-  const abrirEntregable = (ae) => {
-    const url = ae.entregable_url;
-    if (!url) {
-      alert('Este estudiante no tiene entregable adjunto.');
-      return;
-    }
-    window.open(url, '_blank', 'noopener,noreferrer');
-  };
-
-  if (!cpm) return <p>Seleccione un curso para ver y gestionar actividades.</p>;
+  if (!cpm) return <p className="pn-results-hint">Selecciona un curso para gestionar sus actividades.</p>;
 
   return (
-    <div className="activities-wrapper">
-      {/* Header */}
-      <div className="activities-header">
-        <div className="left">
-          <h2>Actividades</h2>
-          <p className="subtitle">
-            Curso: <strong>{cpm?.curso?.nombre_curso ?? cpm?.curso?.id}</strong> · Materia:{' '}
-            <strong>{cpm?.materia?.nombre ?? cpm?.materia?.id}</strong>
-          </p>
-        </div>
-        <div className="right">
-          <button className="btn-primary" onClick={() => dispatch(toggleFormulario())}>
-            {mostrarFormulario ? 'Cerrar formulario' : 'Nueva actividad'}
+    <div className="pf-activities">
+      <div className="pn-toolbar pf-toolbar">
+        <h2>Actividades de {cpm?.materia?.nombre}</h2>
+        <div className="pn-toolbar-actions">
+          <button type="button" className="pn-btn" onClick={() => dispatch(toggleFormulario(true))}>
+            <i className="fas fa-plus" aria-hidden="true"></i> Nueva actividad
           </button>
         </div>
       </div>
 
-      {/* Formulario de creación */}
-      {mostrarFormulario && (
-        <div className="card form-card">
+      {isLoading ? (
+        <div className="pn-state"><span className="pn-spinner" /><strong>Cargando actividades…</strong></div>
+      ) : (actividades || []).length === 0 ? (
+        <div className="pn-card pn-panel">
+          <p className="pn-results-hint">Aún no hay actividades. Crea la primera con «Nueva actividad».</p>
+        </div>
+      ) : (
+        <ul className="pf-act-grid">
+          {(actividades || []).map((a) => {
+            const evaluados = avance.evaluados[a.id] || 0;
+            const completo = avance.total > 0 && evaluados === avance.total;
+            return (
+              <li key={a.id} className="pf-act">
+                <h3>{a.titulo}</h3>
+                <p>{a.descripcion}</p>
+                <div className="pf-act-meta">
+                  <span className="pn-chip is-teal"><i className="fas fa-calendar" aria-hidden="true"></i>&nbsp;{a.fecha}</span>
+                  {a.fecha_entrega && (
+                    <span className="pn-chip is-amber"><i className="fas fa-flag" aria-hidden="true"></i>&nbsp;Entrega {a.fecha_entrega}</span>
+                  )}
+                </div>
+
+                {/* Avance: niños evaluados / total del curso */}
+                <div className="pf-progress" title={`${evaluados} de ${avance.total} evaluados`}>
+                  <div className="pf-progress-bar">
+                    <span style={{ width: avance.total ? `${(evaluados / avance.total) * 100}%` : 0 }} className={completo ? 'is-full' : ''} />
+                  </div>
+                  <small>{evaluados} de {avance.total} evaluados</small>
+                </div>
+
+                <div className="pn-actions">
+                  <button type="button" className="pn-btn-ghost pn-btn-small" onClick={() => abrirFecha(a)}>
+                    <i className="fas fa-calendar-pen" aria-hidden="true"></i> Fecha de entrega
+                  </button>
+                  <button type="button" className="pn-btn-ghost pn-btn-small pf-danger" onClick={() => handleEliminar(a)} aria-label={`Eliminar ${a.titulo}`}>
+                    <i className="fas fa-trash" aria-hidden="true"></i>
+                  </button>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+
+      {/* Ventana: nueva actividad */}
+      <Modal isOpen={!!mostrarFormulario} onClose={() => dispatch(toggleFormulario(false))}>
+        <ModalCard icon="fa-list-check" title="Nueva actividad" subtitle={cpm?.materia?.nombre} titleId="nueva-actividad-titulo">
           <Formik
             initialValues={{ titulo: '', descripcion: '', fecha: hoyISO, fecha_entrega: '' }}
             validationSchema={schemaActividad}
             onSubmit={handleCrearActividad}
           >
             {({ isSubmitting }) => (
-              <Form className="form-actividad">
-                <div className="row">
-                  <div className="field">
-                    <label>Título*</label>
-                    <Field name="titulo" />
-                    <ErrorMessage name="titulo" component="div" className="error" />
+              <Form noValidate aria-labelledby="nueva-actividad-titulo">
+                <div className="pn-form-grid">
+                  <div className="pn-field pn-span-2">
+                    <label htmlFor="titulo">Título *</label>
+                    <Field id="titulo" name="titulo" autoComplete="off" />
+                    <ErrorMessage name="titulo" component="p" className="pn-field-error" />
                   </div>
-                  <div className="field">
-                    <label>Fecha*</label>
-                    <Field type="date" name="fecha" />
-                    <ErrorMessage name="fecha" component="div" className="error" />
+                  <div className="pn-field">
+                    <label htmlFor="fecha">Fecha *</label>
+                    <Field id="fecha" type="date" name="fecha" />
+                    <ErrorMessage name="fecha" component="p" className="pn-field-error" />
                   </div>
-                  <div className="field">
-                    <label>Fecha de entrega</label>
-                    <Field type="date" name="fecha_entrega" />
-                    <ErrorMessage name="fecha_entrega" component="div" className="error" />
+                  <div className="pn-field">
+                    <label htmlFor="fecha_entrega">Fecha de entrega</label>
+                    <Field id="fecha_entrega" type="date" name="fecha_entrega" />
+                    <ErrorMessage name="fecha_entrega" component="p" className="pn-field-error" />
                   </div>
-                </div>
-                <div className="row">
-                  <div className="field full">
-                    <label>Descripción*</label>
-                    <Field as="textarea" name="descripcion" rows={4} />
-                    <ErrorMessage name="descripcion" component="div" className="error" />
+                  <div className="pn-field pn-span-2">
+                    <label htmlFor="descripcion">Descripción *</label>
+                    <Field id="descripcion" as="textarea" name="descripcion" rows={4} />
+                    <ErrorMessage name="descripcion" component="p" className="pn-field-error" />
                   </div>
                 </div>
-                <div className="actions">
-                  <button type="submit" className="btn-primary" disabled={isSubmitting}>
-                    {isSubmitting ? 'Creando…' : 'Crear'}
+                <footer className="pn-modal-foot">
+                  <button type="button" className="pn-btn-ghost" onClick={() => dispatch(toggleFormulario(false))}>Cancelar</button>
+                  <button type="submit" className="pn-btn" disabled={isSubmitting}>
+                    <i className="fas fa-check" aria-hidden="true"></i>{isSubmitting ? 'Creando…' : 'Crear actividad'}
                   </button>
-                </div>
+                </footer>
               </Form>
             )}
           </Formik>
-        </div>
-      )}
+        </ModalCard>
+      </Modal>
 
-      {/* Lista de actividades */}
-      <div className="card">
-        {isLoading ? (
-          <p>Cargando actividades…</p>
-        ) : (actividades || []).length === 0 ? (
-          <p>No hay actividades.</p>
-        ) : (
-          <div className="activities-list">
-            {(actividades || []).map((a) => (
-              <div className="activity-item" key={a.id}>
-                <div className="info">
-                  <h4 className="title">{a.titulo}</h4>
-                  <p className="desc">{a.descripcion}</p>
-                  <div className="meta">
-                    <span>Fecha: {a.fecha}</span>
-                    {a.fecha_entrega ? <span> · Entrega: {a.fecha_entrega}</span> : null}
-                  </div>
-                </div>
-                <div className="item-actions">
-                  <button className="btn-secondary" onClick={() => handleVerDetalle(a)}>
-                    Ver detalle
-                  </button>
+      {/* Ventana pequeña: cambiar la fecha de entrega */}
+      <Modal isOpen={!!dialogFecha} onClose={() => setDialogFecha(null)}>
+        {dialogFecha && (
+          <ModalCard icon="fa-calendar-pen" title="Fecha de entrega" subtitle={dialogFecha.titulo} titleId="dialogo-fecha-titulo">
+            <form onSubmit={(e) => { e.preventDefault(); guardarFecha(); }} aria-labelledby="dialogo-fecha-titulo">
+              <div className="pn-form-grid pn-one-col">
+                <div className="pn-field">
+                  <label htmlFor="nueva-fecha">Nueva fecha</label>
+                  <input id="nueva-fecha" type="date" value={nuevaFecha} onChange={(e) => setNuevaFecha(e.target.value)} autoFocus />
                 </div>
               </div>
-            ))}
-          </div>
+              <footer className="pn-modal-foot">
+                <button type="button" className="pn-btn-ghost" onClick={() => setDialogFecha(null)}>Cancelar</button>
+                <button type="submit" className="pn-btn"><i className="fas fa-check" aria-hidden="true"></i>Guardar</button>
+              </footer>
+            </form>
+          </ModalCard>
         )}
-      </div>
+      </Modal>
 
-      {/* Detalle de actividad */}
-      {actividadId && (
-        <div className="card detail-card">
-          <div className="detail-header">
-            <h3>Entregas de la actividad</h3>
-
-            {/* >>> NUEVO: acciones sobre la actividad */}
-            <div className="detail-actions" style={{ display: 'flex', gap: 8 }}>
-              <button className="btn-secondary" onClick={handleActualizarFechaEntrega}>
-                Actualizar entrega
-              </button>
-              <button className="btn-danger" onClick={handleEliminarActividad}>
-                Eliminar actividad
-              </button>
-            </div>
-          </div>
-
-          {/* Tabs de filtro */}
-          <div className="detail-tabs">
-            <button
-              className={`tab ${detalleFiltro === 'entregadas' ? 'active' : ''}`}
-              onClick={() => setDetalleFiltro('entregadas')}
-            >
-              Entregadas
-            </button>
-            <button
-              className={`tab ${detalleFiltro === 'pendientes' ? 'active' : ''}`}
-              onClick={() => setDetalleFiltro('pendientes')}
-            >
-              Pendientes
-            </button>
-            <button
-              className={`tab ${detalleFiltro === 'todas' ? 'active' : ''}`}
-              onClick={() => setDetalleFiltro('todas')}
-            >
-              Todas
-            </button>
-          </div>
-
-          {loadingEntregas ? (
-            <p>Cargando entregas…</p>
-          ) : (
-            <div className="table-wrap">
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>Estudiante</th>
-                    <th>Entregado</th>
-                    <th>Nota</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(entregas || []).map((ae) => (
-                    <tr key={ae.id}>
-                      <td>{ae.estudiante_nombre}</td>
-                      <td>{ae.entregado_en ? new Date(ae.entregado_en).toLocaleString() : '—'}</td>
-                      <td>{ae.calificacion ?? '—'}</td>
-                      <td className="row-actions">
-                        <button
-                          className="btn-secondary"
-                          onClick={() => abrirEntregable(ae)}
-                          disabled={!ae.entregable_url}
-                          title={ae.entregable_url ? 'Abrir entregable' : 'Sin adjunto'}
-                        >
-                          Ver entregable
-                        </button>
-                        {!ae.entregado_en && (
-                          <button className="btn-secondary" onClick={() => marcarEntregada(ae)}>
-                            Marcar entregada
-                          </button>
-                        )}
-                        <button
-                          className="btn-secondary"
-                          onClick={() => calificar(ae)}
-                          disabled={!ae.entregado_en}
-                          title={!ae.entregado_en ? 'Primero marca como entregada' : 'Calificar'}
-                        >
-                          Calificar
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                  {(entregas || []).length === 0 && (
-                    <tr>
-                      <td colSpan={4}>No hay entregas para este filtro.</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      )}
+      {confirmDialog}
     </div>
   );
 };
