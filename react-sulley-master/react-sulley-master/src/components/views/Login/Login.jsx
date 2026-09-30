@@ -126,12 +126,24 @@ const Login = () => {
     <div className="lg-page">
       {/* Fondo decorativo: formas que flotan suavemente (no tienen significado, por eso aria-hidden) */}
       <div className="lg-deco" aria-hidden="true">
-        <span className="lg-shape lg-ring"></span>
+        {/* Nubes que pasan despacio */}
+        <span className="lg-cloud lg-cloud-1"></span>
+        <span className="lg-cloud lg-cloud-2"></span>
+        <span className="lg-cloud lg-cloud-3"></span>
+
+        {/* Destellos y puntos de color que flotan */}
         <span className="lg-shape lg-star lg-star-1">✦</span>
         <span className="lg-shape lg-star lg-star-2">✦</span>
         <span className="lg-shape lg-dot lg-dot-red"></span>
         <span className="lg-shape lg-dot lg-dot-green"></span>
         <span className="lg-shape lg-dot lg-dot-blue"></span>
+
+        {/* Colinas en tres capas (SVG): preserveAspectRatio="none" las estira a todo el ancho */}
+        <svg className="lg-hills" viewBox="0 0 1440 320" preserveAspectRatio="none">
+          <path d="M0,170 C220,90 470,100 720,170 C980,245 1210,240 1440,150 L1440,320 L0,320 Z" fill="#c8e37a" opacity="0.55" />
+          <path d="M0,235 C280,170 540,190 800,238 C1060,284 1260,262 1440,214 L1440,320 L0,320 Z" fill="#93c524" opacity="0.42" />
+          <path d="M0,283 C300,250 560,262 840,286 C1100,308 1280,296 1440,272 L1440,320 L0,320 Z" fill="#2ec4b6" opacity="0.3" />
+        </svg>
       </div>
 
       <Link to="/" className="lg-home">

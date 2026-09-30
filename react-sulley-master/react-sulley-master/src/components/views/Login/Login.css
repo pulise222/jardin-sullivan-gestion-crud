@@ -19,7 +19,8 @@
   min-height: 100vh;
   min-height: 100dvh;
   padding: 11rem 1.6rem 3rem;
-  background: var(--c-bg, #fff6e7);
+  /* cielo: crema arriba y un amarillo clarito hacia el horizonte */
+  background: linear-gradient(180deg, #fff8ea 0%, #fff3d6 55%, #ffeec2 100%);
   color: var(--c-prim, #1b3158);
   font-family: var(--font-body, "Segoe UI", system-ui, sans-serif);
 }
@@ -64,7 +65,8 @@
 
 .lg-logo img {
   display: block;
-  width: min(22rem, 52vw);
+  /* Logo cuadrado: en celular ocupa hasta el 70% del ancho (máx. 30rem) */
+  width: min(30rem, 70vw);
   height: auto;
   filter: drop-shadow(0 18px 24px rgba(27, 49, 88, 0.18));
 }
@@ -262,7 +264,7 @@
   flex-direction: column;
   align-items: center;
   gap: 2rem;
-  max-width: 36rem;
+  max-width: 48rem; /* más ancho: los tres chips caben en una sola fila */
   text-align: center;
 }
 
@@ -469,11 +471,12 @@
 
 .lg-page::before,
 .lg-page::after {
-  content: "";
-  position: absolute;
-  z-index: 0;
-  border-radius: 50%;
-  pointer-events: none;
+  /* segundo destello suave de sol, arriba a la izquierda */
+  width: 40rem;
+  height: 40rem;
+  top: -18rem;
+  left: -12rem;
+  background: radial-gradient(circle, rgba(255, 214, 102, 0.45), rgba(255, 214, 102, 0) 65%);
 }
 
 .lg-page::before {
@@ -503,16 +506,6 @@
 .lg-shape {
   position: absolute;
   animation: lgFloat 7s ease-in-out infinite;
-}
-
-.lg-ring {
-  width: 14rem;
-  height: 14rem;
-  left: 6%;
-  bottom: 10%;
-  border: 2.2rem solid rgba(40, 168, 227, 0.25);
-  border-radius: 50%;
-  animation-duration: 9s;
 }
 
 .lg-star {
@@ -819,11 +812,13 @@
   .lg-layout {
     flex-direction: row;
     justify-content: center;
-    gap: 7rem;
+    gap: 8rem;
+    max-width: 112rem;
   }
 
   .lg-logo img {
-    width: min(32rem, 32vw);
+    /* Crece con la pantalla pero se limita por alto (60vh) para no provocar scroll en ventanas bajas */
+    width: min(46rem, 36vw, 60vh);
   }
 
   .lg-card {
@@ -837,10 +832,70 @@
   .lg-tagline,
   .lg-roles li,
   .lg-shape,
+  .lg-cloud,
   .lg-error,
   .lg-demo-ico::after,
   .lg-spinner,
   .lg-dialog[open] {
     animation: none;
   }
+}
+
+/* ---------- Paisaje: colinas y nubes ---------- */
+.lg-hills {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: clamp(14rem, 30vh, 28rem);
+  display: block;
+}
+
+/* Una nube = un bloque redondeado blanco + dos "bultos" hechos con ::before y ::after */
+.lg-cloud {
+  position: absolute;
+  left: -24rem;
+  width: 15rem;
+  height: 4.6rem;
+  border-radius: 10rem;
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 10px 20px -12px rgba(27, 49, 88, 0.25);
+  animation: lgDrift 90s linear infinite;
+}
+
+.lg-cloud::before,
+.lg-cloud::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  background: inherit;
+}
+
+.lg-cloud::before {
+  width: 6.6rem;
+  height: 6.6rem;
+  top: -3rem;
+  left: 2.2rem;
+}
+
+.lg-cloud::after {
+  width: 5rem;
+  height: 5rem;
+  top: -2.2rem;
+  right: 2.4rem;
+}
+
+.lg-cloud-1 { top: 14%; animation-delay: -10s; }
+.lg-cloud-2 { top: 34%; width: 11rem; height: 3.6rem; animation-duration: 120s; animation-delay: -70s; opacity: 0.8; }
+.lg-cloud-3 { top: 8%; width: 12rem; height: 4rem; animation-duration: 150s; animation-delay: -115s; opacity: 0.7; }
+
+@keyframes lgDrift {
+  from { transform: translateX(0); }
+  to { transform: translateX(calc(100vw + 48rem)); }
+}
+
+/* El texto de derechos queda sobre las colinas: lo hacemos un poco más oscuro para que se lea */
+.lg-copy {
+  color: rgba(27, 49, 88, 0.78);
+  font-weight: 600;
 }
