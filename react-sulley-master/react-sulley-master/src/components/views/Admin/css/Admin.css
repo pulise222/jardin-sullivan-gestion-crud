@@ -1,11 +1,7 @@
-.admin-layout {
-  display: flex;
-  height: 100vh; /* Ocupa toda la altura de la pantalla */
-  width: 100%; 
-}
-.admin-content {
-  width: 85vw;
-  background-color: #f8fafc; /* gris claro */
-  overflow-y: auto;
-  box-sizing: border-box;
-}
+/* src/components/views/Admin/css/Admin.css */
+
+/*
+  El diseño general del panel (menú lateral, encabezado, tablas, botones) está en
+  src/styles/panel.css y se comparte con los paneles de Profesor y Acudiente.
+  Aquí solo irán ajustes que sean exclusivos del administrador.
+*/

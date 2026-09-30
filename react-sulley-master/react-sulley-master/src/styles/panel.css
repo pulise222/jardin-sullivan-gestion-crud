@@ -1,0 +1,631 @@
+/* src/styles/panel.css */
+
+/*
+  ======================================================================
+  SISTEMA DE DISEÑO DE LOS PANELES (Administrador, Profesor, Acudiente)
+  ======================================================================
+  IDEA: una base común para que los tres paneles se sientan una sola plataforma,
+  y un COLOR DE ACENTO distinto por rol que orienta al usuario:
+
+      Administrador → rojo coral      Profesor → celeste      Acudiente → verde
+
+  El acento se activa con el atributo data-role en el contenedor del panel:
+      <div className="pn-layout" data-role="admin">
+  Todo lo que usa var(--pn-accent) cambia de color solo.
+
+  Todas las clases empiezan por "pn-" (panel) para no chocar con los estilos viejos.
+*/
+
+/* ---------- Colores y medidas base ---------- */
+.pn-layout {
+  --pn-ink: #1b3158;                       /* texto principal (azul de la marca) */
+  --pn-ink-soft: rgba(27, 49, 88, 0.66);   /* texto secundario */
+  --pn-line: rgba(27, 49, 88, 0.1);        /* líneas y bordes suaves */
+  --pn-bg: #f4f6fa;                        /* fondo del contenido */
+  --pn-card: #ffffff;                      /* fondo de las tarjetas */
+  --pn-side: #14264a;                      /* fondo del menú lateral */
+  --pn-radius: 1.8rem;
+  --pn-shadow: 0 1px 2px rgba(27, 49, 88, 0.06), 0 12px 28px -18px rgba(27, 49, 88, 0.28);
+
+  /* Acento por defecto (admin) */
+  --pn-accent: #f25141;
+  --pn-accent-strong: #d63a2a;             /* versión más oscura: botones con texto blanco */
+  --pn-accent-soft: #fde9e6;               /* versión muy clara: fondos suaves */
+}
+
+.pn-layout[data-role="profesor"] {
+  --pn-accent: #28a8e3;
+  --pn-accent-strong: #1583b8;
+  --pn-accent-soft: #e2f4fc;
+}
+
+.pn-layout[data-role="acudiente"] {
+  --pn-accent: #93c524;
+  --pn-accent-strong: #5f8a0f;
+  --pn-accent-soft: #eef7d6;
+}
+
+/* ---------- Estructura: menú lateral + contenido ---------- */
+.pn-layout {
+  display: grid;
+  grid-template-columns: 27rem minmax(0, 1fr); /* minmax(0,…) deja que el contenido se encoja sin desbordar */
+  width: 100%;
+  min-height: 100vh;
+  background: var(--pn-bg);
+  color: var(--pn-ink);
+  font-family: var(--font-body, "Segoe UI", system-ui, sans-serif);
+  font-size: 1.5rem;
+}
+
+/* ---------- Menú lateral ---------- */
+.pn-sidebar {
+  position: sticky;       /* se queda fijo mientras el contenido hace scroll */
+  top: 0;
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: 2.4rem;
+  height: 100vh;
+  padding: 2.4rem 1.8rem;
+  background: var(--pn-side);
+  color: #fff;
+  overflow-y: auto;
+}
+
+.pn-brand {
+  display: block;
+  padding: 0.4rem 0.6rem;
+  text-decoration: none;
+}
+
+/* Tarjeta con el usuario que inició sesión */
+.pn-user {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  padding: 1.2rem;
+  border-radius: 1.8rem;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.pn-avatar {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 4.4rem;
+  height: 4.4rem;
+  border-radius: 50%;
+  background: var(--pn-accent);
+  color: #fff;
+  font-family: var(--font-display, "Segoe UI", sans-serif);
+  font-size: 1.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.pn-user-name {
+  display: block;
+  overflow: hidden;
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pn-user-role {
+  display: inline-block;
+  margin-top: 0.3rem;
+  padding: 0.2rem 0.9rem;
+  border-radius: 10rem;
+  background: var(--pn-accent);
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.pn-nav-label {
+  padding: 0 1.2rem;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.pn-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Cada opción del menú es un <button> (se puede usar con teclado) */
+.pn-nav button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1.4rem;
+  width: 100%;
+  padding: 1.2rem 1.4rem;
+  border: 0;
+  border-radius: 1.4rem;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.78);
+  font: inherit;
+  font-size: 1.5rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.pn-nav button i {
+  width: 2.2rem;
+  font-size: 1.7rem;
+  text-align: center;
+  opacity: 0.85;
+}
+
+.pn-nav button:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: #fff;
+}
+
+/* Opción activa: fondo claro, texto blanco y una barrita del color de acento a la izquierda */
+.pn-nav button.is-active {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.pn-nav button.is-active::before {
+  content: "";
+  position: absolute;
+  left: -1.8rem;
+  top: 22%;
+  bottom: 22%;
+  width: 0.4rem;
+  border-radius: 0 0.4rem 0.4rem 0;
+  background: var(--pn-accent);
+}
+
+.pn-nav button.is-active i {
+  color: var(--pn-accent);
+  opacity: 1;
+}
+
+.pn-nav button:focus-visible,
+.pn-icon-btn:focus-visible,
+.pn-btn:focus-visible,
+.pn-menu-toggle:focus-visible {
+  outline: 0.3rem solid var(--pn-accent);
+  outline-offset: 0.2rem;
+}
+
+.pn-sidebar-foot {
+  margin-top: auto;
+  padding-top: 1.6rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.pn-sidebar-foot button:hover {
+  background: rgba(242, 81, 65, 0.16);
+  color: #fff;
+}
+
+/* ---------- Contenido principal ---------- */
+.pn-main {
+  min-width: 0;
+  padding: 3rem 3.6rem 5rem;
+}
+
+.pn-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.6rem 2.4rem;
+  margin-bottom: 2.8rem;
+}
+
+.pn-header h1 {
+  margin: 0 0 0.4rem;
+  font-family: var(--font-display, "Segoe UI", sans-serif);
+  font-size: clamp(2.8rem, 2.4vw + 1.4rem, 3.8rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+
+.pn-header p {
+  margin: 0;
+  color: var(--pn-ink-soft);
+  font-size: 1.5rem;
+}
+
+/* Botón del menú (solo celular) */
+.pn-menu-toggle {
+  display: none;
+  place-items: center;
+  width: 4.4rem;
+  height: 4.4rem;
+  border: 1px solid var(--pn-line);
+  border-radius: 1.4rem;
+  background: var(--pn-card);
+  color: var(--pn-ink);
+  font-size: 1.8rem;
+  cursor: pointer;
+}
+
+/* ---------- Tarjetas de resumen (KPI) ---------- */
+.pn-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(22rem, 1fr));
+  gap: 1.6rem;
+  margin-bottom: 2.8rem;
+}
+
+.pn-kpi {
+  display: flex;
+  align-items: center;
+  gap: 1.6rem;
+  padding: 2rem;
+  border-radius: var(--pn-radius);
+  background: var(--pn-card);
+  border: 1px solid var(--pn-line);
+  box-shadow: var(--pn-shadow);
+}
+
+.pn-kpi-ico {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 5.2rem;
+  height: 5.2rem;
+  border-radius: 1.6rem;
+  background: var(--pn-accent-soft);
+  color: var(--pn-accent-strong);
+  font-size: 2.2rem;
+}
+
+.pn-kpi strong {
+  display: block;
+  font-family: var(--font-display, "Segoe UI", sans-serif);
+  font-size: 3.2rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.pn-kpi span {
+  color: var(--pn-ink-soft);
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+/* ---------- Tarjeta contenedora, barra de herramientas y botones ---------- */
+.pn-card {
+  border-radius: var(--pn-radius);
+  background: var(--pn-card);
+  border: 1px solid var(--pn-line);
+  box-shadow: var(--pn-shadow);
+}
+
+.pn-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.9rem;
+  min-height: 4.6rem;
+  padding: 0 2.2rem;
+  border: 0;
+  border-radius: 1.4rem;
+  background: var(--pn-accent-strong);
+  color: #fff;
+  font: inherit;
+  font-size: 1.5rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, filter 0.2s ease;
+}
+
+.pn-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 22px -12px var(--pn-accent-strong);
+  filter: brightness(1.05);
+}
+
+/* Botones de ícono (editar / eliminar) */
+.pn-icon-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 3.8rem;
+  height: 3.8rem;
+  border: 0;
+  border-radius: 1.1rem;
+  background: rgba(27, 49, 88, 0.07);
+  color: var(--pn-ink);
+  font-size: 1.4rem;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.pn-icon-btn:hover {
+  background: var(--pn-ink);
+  color: #fff;
+  transform: translateY(-2px);
+}
+
+.pn-icon-btn.is-danger {
+  background: #fde9e6;
+  color: #c4291a;
+}
+
+.pn-icon-btn.is-danger:hover {
+  background: #d63a2a;
+  color: #fff;
+}
+
+/* ---------- Tabla ---------- */
+.pn-table-wrap {
+  overflow-x: auto;          /* si la tabla es ancha, se desliza dentro de la tarjeta (no rompe la página) */
+  border-radius: var(--pn-radius);
+}
+
+.pn-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 1.45rem;
+}
+
+.pn-table thead th {
+  padding: 1.4rem 1.8rem;
+  background: #f8f9fc;
+  border-bottom: 1px solid var(--pn-line);
+  color: var(--pn-ink-soft);
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.pn-table tbody td {
+  padding: 1.4rem 1.8rem;
+  border-bottom: 1px solid var(--pn-line);
+  vertical-align: middle;
+}
+
+.pn-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.pn-table tbody tr {
+  transition: background 0.15s ease;
+}
+
+.pn-table tbody tr:hover {
+  background: #fafbfe;
+}
+
+/* Celda de persona: avatar + nombre + dato secundario */
+.pn-person {
+  display: flex;
+  align-items: center;
+  gap: 1.4rem;
+  min-width: 22rem;
+}
+
+.pn-person .pn-avatar {
+  width: 4.2rem;
+  height: 4.2rem;
+  background: var(--pn-accent-soft);
+  color: var(--pn-accent-strong);
+  font-size: 1.6rem;
+}
+
+.pn-person strong {
+  display: block;
+  font-weight: 700;
+}
+
+.pn-person small {
+  color: var(--pn-ink-soft);
+  font-size: 1.25rem;
+}
+
+/* Chips (etiquetas pequeñas) */
+.pn-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 1rem;
+  border-radius: 10rem;
+  background: rgba(27, 49, 88, 0.08);
+  color: var(--pn-ink);
+  font-size: 1.2rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.pn-chip.is-accent {
+  background: var(--pn-accent-soft);
+  color: var(--pn-accent-strong);
+}
+
+.pn-muted {
+  color: var(--pn-ink-soft);
+}
+
+.pn-actions {
+  display: flex;
+  gap: 0.8rem;
+}
+
+/* ---------- Estados: cargando / error / vacío ---------- */
+.pn-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 5rem 2rem;
+  color: var(--pn-ink-soft);
+  text-align: center;
+}
+
+.pn-state i {
+  color: var(--pn-accent);
+  font-size: 3.4rem;
+}
+
+.pn-state strong {
+  color: var(--pn-ink);
+  font-size: 1.8rem;
+}
+
+.pn-spinner {
+  width: 3.6rem;
+  height: 3.6rem;
+  border: 4px solid var(--pn-line);
+  border-top-color: var(--pn-accent);
+  border-radius: 50%;
+  animation: pnSpin 0.8s linear infinite;
+}
+
+@keyframes pnSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Aparición suave del contenido */
+.pn-fade {
+  animation: pnFade 0.5s var(--ease, cubic-bezier(0.16, 1, 0.3, 1)) backwards;
+}
+
+@keyframes pnFade {
+  from {
+    opacity: 0;
+    transform: translateY(1.2rem);
+  }
+}
+
+/* ---------- Celular y tablet: el menú lateral pasa a ser un panel que se desliza ---------- */
+.pn-backdrop {
+  display: none;
+}
+
+@media screen and (max-width: 960px) {
+  .pn-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pn-sidebar {
+    position: fixed;
+    z-index: 60;
+    top: 0;
+    left: 0;
+    width: min(30rem, 86vw);
+    transform: translateX(-105%);
+    transition: transform 0.35s var(--ease, cubic-bezier(0.16, 1, 0.3, 1));
+  }
+
+  .pn-layout.is-menu-open .pn-sidebar {
+    transform: translateX(0);
+  }
+
+  .pn-layout.is-menu-open .pn-backdrop {
+    display: block;
+    position: fixed;
+    z-index: 50;
+    inset: 0;
+    background: rgba(15, 34, 64, 0.55);
+    backdrop-filter: blur(3px);
+  }
+
+  .pn-menu-toggle {
+    display: grid;
+  }
+
+  .pn-main {
+    padding: 2rem 1.6rem 4rem;
+  }
+
+  .pn-header {
+    flex-wrap: nowrap;
+    align-items: center;
+  }
+
+  .pn-header-text {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pn-fade,
+  .pn-spinner,
+  .pn-sidebar {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* ---------- Barra de herramientas de las tablas (buscador + botón) ---------- */
+.pn-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.2rem;
+  margin-bottom: 1.8rem;
+}
+
+.pn-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1 1 28rem;
+  max-width: 46rem;
+}
+
+.pn-search i {
+  position: absolute;
+  left: 1.6rem;
+  color: var(--pn-ink-soft);
+  font-size: 1.5rem;
+  pointer-events: none;
+}
+
+.pn-search input {
+  width: 100%;
+  min-height: 4.8rem;
+  padding: 0 1.6rem 0 4.4rem;
+  border: 1.5px solid var(--pn-line);
+  border-radius: 1.4rem;
+  background: var(--pn-card);
+  color: var(--pn-ink);
+  font: inherit;
+  font-size: 1.5rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pn-search input::placeholder {
+  color: var(--pn-ink-soft);
+}
+
+.pn-search input:focus {
+  outline: none;
+  border-color: var(--pn-accent);
+  box-shadow: 0 0 0 4px var(--pn-accent-soft);
+}
+
+@media screen and (max-width: 560px) {
+  .pn-toolbar .pn-btn {
+    width: 100%;
+  }
+}

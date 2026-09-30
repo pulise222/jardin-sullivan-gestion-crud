@@ -1,55 +1,97 @@
-// src/components/MenuAdmin.jsx
-import React from 'react';
-import { NavLink } from 'react-router-dom';
-import './MenuAdmin.css'; // Importa el CSS
+// src/components/container/Menu/MenuAdmin/MenuAdmin.jsx
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { logoutUser } from '../../../../features/user/userSlice'
+import { logoutUser } from '../../../../features/user/userSlice';
+import Logo from '../../../common/Logo';
+// Los estilos (clases "pn-…") viven en src/styles/panel.css y se comparten con los otros paneles.
 
-const MenuAdmin = ({ setView, currentView }) => {
+/*
+  Las secciones del panel. Tener una lista en vez de repetir cinco <li> iguales
+  hace que agregar una sección nueva sea cuestión de una línea.
+  `icon` es una clase de Font Awesome.
+*/
+const SECTIONS = [
+  { id: 'estudiantes', label: 'Estudiantes', icon: 'fa-children' },
+  { id: 'personas', label: 'Personas', icon: 'fa-user-group' },
+  { id: 'materias', label: 'Materias', icon: 'fa-book-open' },
+  { id: 'asignaciones', label: 'Asignaciones', icon: 'fa-diagram-project' },
+  { id: 'eventos', label: 'Eventos', icon: 'fa-calendar-days' },
+];
+
+/*
+  Props:
+    setView      → cambia la sección que se muestra
+    currentView  → sección activa (para resaltarla)
+    onNavigate   → se llama al elegir una sección (en celular sirve para cerrar el menú)
+*/
+const MenuAdmin = ({ setView, currentView, onNavigate }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const persona = useSelector(state => state.user.persona) || {};
-  console.log(persona);
-  
+  const user = useSelector((state) => state.user.user) || {};
+  const persona = useSelector((state) => state.user.persona) || {};
+
+  // Nombre a mostrar: el de la persona si existe; si no, el usuario; si no, un texto genérico
+  const displayName = persona.nombre || user.username || 'Administrador';
+
   const logout = () => {
     // Limpiar las credenciales
     dispatch(logoutUser());
-
     // Redirigir al login
     navigate('/login', { replace: true });
   };
 
+  const choose = (id) => {
+    setView(id);
+    onNavigate?.(); // "?." = solo llama a la función si existe
+  };
+
   return (
-    <aside className="admin-menu">
-      <h3>Admin: {persona.nombre || 'Administrador'}</h3>
-      <ul>
+    <aside className="pn-sidebar" aria-label="Menú del panel de administración">
+      <span className="pn-brand">
+        <Logo tone="light" />
+      </span>
 
-        <li onClick={() => setView('estudiantes')} className={currentView === 'estudiantes' ? 'active' : ''}>
-          <span className="text">Estudiantes</span>
-        </li>
+      {/* Tarjeta del usuario: inicial en un círculo del color de acento + nombre + rol */}
+      <div className="pn-user">
+        <span className="pn-avatar" aria-hidden="true">{displayName.charAt(0)}</span>
+        <div style={{ minWidth: 0 }}>
+          <span className="pn-user-name">{displayName}</span>
+          <span className="pn-user-role">Administrador</span>
+        </div>
+      </div>
 
-        <li onClick={() => setView('personas')} className={currentView === 'personas' ? 'active' : ''}>
-          <span className="text">Personas</span>
-        </li>
+      <div>
+        <p className="pn-nav-label">Gestión</p>
+        <ul className="pn-nav">
+          {SECTIONS.map((section) => (
+            <li key={section.id}>
+              <button
+                type="button"
+                className={currentView === section.id ? 'is-active' : ''}
+                aria-current={currentView === section.id ? 'page' : undefined}
+                onClick={() => choose(section.id)}
+              >
+                <i className={`fas ${section.icon}`} aria-hidden="true"></i>
+                {section.label}
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
 
-        <li onClick={() => setView('materias')} className={currentView === 'materias' ? 'active' : ''}>
-          <span className="text">Materias</span>
-        </li>
-        <li onClick={() => setView('asignaciones')} className={currentView === 'asignaciones' ? 'active' : ''}>
-          <span className="text">Asignaciones</span>
-        </li>
-        <li onClick={() => setView('eventos')} className={currentView === 'eventos' ? 'active' : ''}>
-          <span className="text">Eventos</span>
-        </li>
-        <li onClick={logout}>
-          <span className="text">Cerrar Sesion</span>
-        </li>
-      </ul>
+      <div className="pn-sidebar-foot">
+        <ul className="pn-nav">
+          <li>
+            <button type="button" onClick={logout}>
+              <i className="fas fa-right-from-bracket" aria-hidden="true"></i>
+              Cerrar sesión
+            </button>
+          </li>
+        </ul>
+      </div>
     </aside>
   );
 };
-
 
 export default MenuAdmin;
