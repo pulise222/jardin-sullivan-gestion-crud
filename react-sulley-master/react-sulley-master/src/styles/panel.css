@@ -7,7 +7,7 @@
   IDEA: una base común para que los tres paneles se sientan una sola plataforma,
   y un COLOR DE ACENTO distinto por rol que orienta al usuario:
 
-      Administrador → rojo coral      Profesor → celeste      Acudiente → verde
+      Administrador → rojo coral      Profesor → ciruela y ámbar      Acudiente → azul y amarillo
 
   El acento se activa con el atributo data-role en el contenedor del panel:
       <div className="pn-layout" data-role="admin">
@@ -37,6 +37,17 @@
   --pn-radius: 1.8rem;
   --pn-shadow: 0 1px 2px rgba(16, 50, 59, 0.06), 0 12px 28px -18px rgba(15, 76, 92, 0.4);
 
+  /* Vidrio del menú, manchas de fondo y resplandores: antes fijos, ahora cambian por rol */
+  --pn-glass-a: rgba(15, 76, 92, 0.93);
+  --pn-glass-b: rgba(7, 48, 61, 0.88);
+  --pn-glass-shadow: rgba(7, 40, 52, 0.75);
+  --pn-blob-a: rgba(255, 122, 26, 0.5);
+  --pn-blob-b: rgba(46, 196, 182, 0.42);
+  --pn-glow-a: rgba(46, 196, 182, 0.08);
+  --pn-glow-b: rgba(255, 122, 26, 0.07);
+  --pn-accent-ring: rgba(255, 122, 26, 0.28);
+  --pn-accent-glow: rgba(255, 122, 26, 0.8);
+
   --pn-side-1: #ff8a2e;                    /* degradado del avatar */
   --pn-side-2: #e5650e;
   --pn-accent: #ff7a1a;
@@ -50,18 +61,86 @@
   --pn-petrol: #0f4c5c;    --pn-petrol-soft: #dce9ec;  --pn-petrol-strong: #0f4c5c;
 }
 
+/*
+  PROFESOR -> paleta "Ciruela y ambar": menu morado profundo, ambar como acento, turquesa y lila de apoyo.
+  Sobreescribimos los MISMOS tokens que usa el administrador: por eso ningun componente cambia,
+  solo se repinta. (Los nombres --pn-teal/--pn-amber/--pn-petrol se reutilizan: aqui "petrol" es lila.)
+*/
 .pn-layout[data-role="profesor"] {
-  --pn-side: #1b5f86;
+  --pn-ink: #24123f;
+  --pn-ink-soft: rgba(36, 18, 63, 0.66);
+  --pn-line: rgba(36, 18, 63, 0.11);
+  --pn-bg: #f6f3fb;
+  --pn-side: #4a2a83;
+  --pn-shadow: 0 1px 2px rgba(36, 18, 63, 0.06), 0 12px 28px -18px rgba(74, 42, 131, 0.45);
+
+  --pn-glass-a: rgba(74, 42, 131, 0.94);
+  --pn-glass-b: rgba(44, 22, 82, 0.9);
+  --pn-glass-shadow: rgba(30, 14, 60, 0.7);
+  --pn-blob-a: rgba(255, 176, 32, 0.5);
+  --pn-blob-b: rgba(183, 148, 246, 0.45);
+  --pn-glow-a: rgba(183, 148, 246, 0.12);
+  --pn-glow-b: rgba(255, 176, 32, 0.08);
+  --pn-accent-ring: rgba(255, 176, 32, 0.32);
+  --pn-accent-glow: rgba(255, 176, 32, 0.8);
+
+  --pn-side-1: #ffc24d;
+  --pn-side-2: #ffb020;
   --pn-accent: #ffb020;
   --pn-accent-strong: #9a6500;
   --pn-accent-soft: #fff0cf;
+  --pn-on-accent: #2a1650;
+
+  --pn-teal: #2fb5a8;      --pn-teal-soft: #d6f1ee;    --pn-teal-strong: #0b7a6e;
+  --pn-amber: #ffd166;     --pn-amber-soft: #fff1cc;   --pn-amber-strong: #8a6100;
+  --pn-petrol: #b794f6;    --pn-petrol-soft: #ece3fb;  --pn-petrol-strong: #5d3aa8;
 }
 
+/*
+  ACUDIENTE -> paleta "Azul oceano y amarillo": menu azul profundo, amarillo como acento,
+  turquesa y coral de apoyo (recuerda los colores de la marca del jardin).
+  Aqui "amber" es coral y "petrol" es el azul.
+*/
 .pn-layout[data-role="acudiente"] {
-  --pn-side: #2d6a4f;
-  --pn-accent: #ff8a5b;
-  --pn-accent-strong: #b34a1f;
-  --pn-accent-soft: #ffe8de;
+  --pn-ink: #0f2447;
+  --pn-ink-soft: rgba(15, 36, 71, 0.66);
+  --pn-line: rgba(15, 36, 71, 0.11);
+  --pn-bg: #f3f7fd;
+  --pn-side: #1f4e9e;
+  --pn-shadow: 0 1px 2px rgba(15, 36, 71, 0.06), 0 12px 28px -18px rgba(31, 78, 158, 0.45);
+
+  --pn-glass-a: rgba(31, 78, 158, 0.94);
+  --pn-glass-b: rgba(16, 48, 110, 0.9);
+  --pn-glass-shadow: rgba(10, 30, 80, 0.7);
+  --pn-blob-a: rgba(255, 201, 51, 0.5);
+  --pn-blob-b: rgba(47, 181, 163, 0.42);
+  --pn-glow-a: rgba(47, 181, 163, 0.1);
+  --pn-glow-b: rgba(255, 201, 51, 0.09);
+  --pn-accent-ring: rgba(255, 201, 51, 0.35);
+  --pn-accent-glow: rgba(255, 201, 51, 0.85);
+
+  --pn-side-1: #ffd966;
+  --pn-side-2: #ffc933;
+  --pn-accent: #ffc933;
+  --pn-accent-strong: #8a6100;
+  --pn-accent-soft: #fff3c7;
+  --pn-on-accent: #0f2447;
+
+  --pn-teal: #2fb5a3;      --pn-teal-soft: #d5f1ed;    --pn-teal-strong: #0b7a6b;
+  --pn-amber: #f26b4f;     --pn-amber-soft: #fde2db;   --pn-amber-strong: #b03a22;
+  --pn-petrol: #1f4e9e;    --pn-petrol-soft: #dbe6f7;  --pn-petrol-strong: #163d7e;
+}
+
+/*
+  SCROLL DE LOS PANELES.
+  index.css deja el <body> como flex de altura 100vh y #root con overflow:hidden. Resultado: #root
+  se estira a la altura de la pantalla y RECORTA todo lo que la pase (no se podía hacer scroll).
+  En cuanto el panel existe (:has), liberamos el overflow y el ancho, igual que hace el hook
+  useFreeScroll en la landing. Así la página crece y el navegador hace scroll normal.
+*/
+#root:has(.pn-layout) {
+  overflow: visible;
+  width: 100%;
 }
 
 /* ---------- Estructura: menú lateral + contenido ---------- */
@@ -95,12 +174,12 @@
   padding: 2.4rem 1.6rem 1.6rem;
   border-radius: 3.4rem;
   /* degradado petróleo translúcido + desenfoque de lo que hay detrás = vidrio */
-  background: linear-gradient(165deg, rgba(15, 76, 92, 0.93), rgba(7, 48, 61, 0.88));
+  background: linear-gradient(165deg, var(--pn-glass-a), var(--pn-glass-b));
   -webkit-backdrop-filter: blur(22px) saturate(170%);
   backdrop-filter: blur(22px) saturate(170%);
   border: 1px solid rgba(255, 255, 255, 0.22);
   box-shadow:
-    0 40px 70px -34px rgba(7, 40, 52, 0.75),
+    0 40px 70px -34px var(--pn-glass-shadow),
     inset 0 1px 0 rgba(255, 255, 255, 0.28);
   color: #fff;
   overflow-x: hidden;
@@ -203,7 +282,7 @@
 .pn-nav button.is-active .pn-nav-ico {
   background: var(--pn-accent);
   color: var(--pn-on-accent);
-  box-shadow: 0 0 0 4px rgba(255, 122, 26, 0.28), 0 8px 18px -6px rgba(255, 122, 26, 0.8);
+  box-shadow: 0 0 0 4px var(--pn-accent-ring), 0 8px 18px -6px var(--pn-accent-glow);
 }
 
 /* Anillo de foco: blanco dentro del menú (oscuro) y naranja en el resto */
@@ -289,8 +368,8 @@
 /* Manchas de color FIJAS detrás del menú: es lo que el vidrio desenfoca y deja ver */
 .pn-layout {
   background:
-    radial-gradient(38rem 38rem at 0% 100%, rgba(255, 122, 26, 0.5), transparent 70%),
-    radial-gradient(34rem 34rem at 8% 6%, rgba(46, 196, 182, 0.42), transparent 70%),
+    radial-gradient(38rem 38rem at 0% 100%, var(--pn-blob-a), transparent 70%),
+    radial-gradient(34rem 34rem at 8% 6%, var(--pn-blob-b), transparent 70%),
     var(--pn-bg);
   background-attachment: fixed;
 }
@@ -930,8 +1009,8 @@
 /* Fondo del contenido con un resplandor suave de dos colores */
 .pn-main {
   background:
-    radial-gradient(60rem 28rem at 100% 0%, rgba(46, 196, 182, 0.08), transparent 70%),
-    radial-gradient(50rem 26rem at 0% 0%, rgba(255, 122, 26, 0.07), transparent 70%);
+    radial-gradient(60rem 28rem at 100% 0%, var(--pn-glow-a), transparent 70%),
+    radial-gradient(50rem 26rem at 0% 0%, var(--pn-glow-b), transparent 70%);
 }
 
 /* Cada tarjeta de resumen con su propio color */
