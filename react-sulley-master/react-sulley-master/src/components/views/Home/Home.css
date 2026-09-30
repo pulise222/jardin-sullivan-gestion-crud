@@ -1835,44 +1835,191 @@ html:has(.home) {
   }
 }
 
-/* ====================== BENEFICIOS ====================== */
+/* ====================== BENEFICIOS (sección anclada con scroll horizontal) ====================== */
+/*
+  IDEA: mientras bajas, la sección se queda fija (position: sticky) y las tarjetas
+  se deslizan de lado. El truco:
+    1) La <section> es MUY alta (el hook le pone la altura: recorrido horizontal + 1 pantalla).
+    2) Dentro, .hs-sticky se queda pegado arriba ocupando exactamente una pantalla.
+    3) El hook convierte cuánto has bajado en un desplazamiento horizontal de .hs-track.
+*/
 .beneficios-section {
-  padding-block: 4rem 6rem;
+  position: relative;
   background: var(--c-bg);
 }
 
-.beneficios-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.8rem;
+.hs-sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh; /* "small viewport height": no salta con la barra del navegador en el celular */
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  /* espacio arriba para el menú flotante y abajo para la barrita de progreso */
+  padding: 9rem 0 7rem;
 }
 
-.beneficio-item {
-  text-align: center;
-}
-
-.beneficio-circulo {
-  width: 9.6rem;
-  height: 9.6rem;
-  border-radius: 50%;
+.hs-track {
   display: flex;
   align-items: center;
-  justify-content: center;
-  color: #fff;
-  font-size: 3.6rem;
-  margin: 0 auto 1.4rem;
-  box-shadow: 0 .4rem .8rem rgba(0, 0, 0, .1);
+  gap: 2.4rem;
+  width: max-content; /* la fila mide lo que miden sus hijos, aunque se salga de la pantalla */
+  /* deja el margen izquierdo alineado con el resto de la página y espacio al final */
+  padding-inline: max(2rem, calc((100vw - var(--wrap-max)) / 2));
+  will-change: translate;
 }
 
-.beneficio-item h3 {
+/* --- Panel de introducción --- */
+.hs-intro {
+  flex: none;
+  width: min(86vw, 52rem);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2.4rem;
+  padding-right: 3rem;
+}
+
+.hs-title {
+  margin: 0;
   color: var(--c-prim);
-  font-size: 2.0rem;
-  margin: 1rem 0;
+  font-size: clamp(3.6rem, 5.4vw, 6.4rem);
+  font-weight: 800;
+  line-height: 1.02;
+  letter-spacing: -0.035em;
 }
 
-.beneficio-item p {
-  color: #333;
+.hs-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 0;
+  color: rgba(27, 49, 88, 0.65);
   font-size: 1.6rem;
+  font-weight: 600;
+}
+
+/* --- Tarjetas --- */
+.beneficio-card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 1.4rem;
+  width: min(80vw, 42rem);
+  /* clamp(mínimo, ideal, máximo): crece con la altura de la pantalla, sin pasarse ni quedar diminuta */
+  height: clamp(30rem, 62svh, 56rem);
+  padding: 3.2rem;
+  border-radius: 3.6rem;
+  background: var(--tone);
+  color: var(--ink, var(--c-prim));
+  box-shadow: 0 40px 70px -40px rgba(27, 49, 88, 0.55);
+}
+
+/* Círculo translúcido decorativo (mismo lenguaje que las tarjetas de Grupos) */
+.beneficio-card::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  width: 34rem;
+  height: 34rem;
+  top: -12rem;
+  right: -10rem;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.beneficio-num {
+  position: absolute;
+  top: 2.6rem;
+  left: 3.2rem;
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  opacity: 0.7;
+}
+
+/* El emoji dentro de un círculo que gira con el avance (--hs va de 0 a 1) */
+.beneficio-circulo {
+  flex: none; /* en una columna flex, sin esto el círculo se aplasta cuando falta altura */
+  display: grid;
+  place-items: center;
+  width: 11rem;
+  height: 11rem;
+  margin-bottom: auto; /* empuja el círculo arriba y el texto abajo */
+  margin-top: 4rem;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.28);
+  font-size: 5.4rem;
+  line-height: 1;
+  transform: rotate(calc(var(--hs, 0) * 120deg));
+}
+
+.beneficio-card h3 {
+  margin: 0;
+  font-size: clamp(2.8rem, 3vw, 3.6rem);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+}
+
+.beneficio-card p {
+  margin: 0;
+  font-size: 1.6rem;
+  line-height: 1.6;
+  opacity: 0.92;
+}
+
+/* --- Barrita de progreso --- */
+.hs-progress {
+  position: absolute;
+  left: 50%;
+  bottom: 4rem;
+  width: min(30rem, 60vw);
+  height: 0.4rem;
+  margin-left: calc(min(30rem, 60vw) / -2);
+  border-radius: 10rem;
+  background: rgba(27, 49, 88, 0.14);
+  overflow: hidden;
+}
+
+.hs-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--c-accent), var(--c-orange), var(--c-red));
+  transform-origin: left center;
+  transform: scaleX(var(--hs, 0));
+}
+
+/* Sin animaciones: nada de anclar; las tarjetas quedan en una rejilla normal */
+@media (prefers-reduced-motion: reduce) {
+  .hs-sticky {
+    position: static;
+    height: auto;
+    padding-block: 8rem;
+  }
+
+  .hs-track {
+    flex-wrap: wrap;
+    width: auto;
+    padding-inline: 2rem;
+    translate: none;
+  }
+
+  .hs-progress {
+    display: none;
+  }
+
+  .beneficio-circulo {
+    transform: none;
+  }
 }
 
 /* ====================== BANNER ====================== */
@@ -2089,9 +2236,6 @@ html:has(.home) {
   }
 
 
-  .beneficios-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
 
   .banner-inner {
     flex-direction: row;
@@ -2111,9 +2255,6 @@ html:has(.home) {
 /* Desktop ≥ 1024px */
 @media screen and (min-width: 1024px) {
 
-  .beneficios-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
 
   .metodo-grid {
     grid-template-columns: 1fr 1fr;
@@ -2132,9 +2273,6 @@ html:has(.home) {
   }
 
 
-  .beneficios-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
 
   .metodo-grid {
     grid-template-columns: 1fr 1fr;

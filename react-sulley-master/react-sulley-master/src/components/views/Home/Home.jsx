@@ -166,6 +166,34 @@ const GROUPS = [
 // Cada fila repite solo 3 palabras: así, mirando cualquier tramo de la fila, siempre se leen las 3.
 const MARQUEE_ROW_1 = ["Juego", "Curiosidad", "Creatividad"];
 const MARQUEE_ROW_2 = ["Respeto", "Exploración", "Empatía"];
+
+/*
+  BENEFICIOS: las tres razones para confiar en el jardín. `color` es el fondo de la
+  tarjeta y `ink` el color del texto encima (blanco sobre rojo para que se lea bien).
+*/
+const BENEFITS = [
+  {
+    icon: "🎓",
+    title: "Excelentes docentes",
+    text: "Todos nuestros educadores son profesionales en pedagogía infantil con amplia experiencia en primera infancia.",
+    color: "#F25141",
+    ink: "#FFFFFF",
+  },
+  {
+    icon: "🍎",
+    title: "Alimentación saludable",
+    text: "Cada día servimos menús balanceados preparados con ingredientes frescos y seguimos estrictos protocolos de higiene.",
+    color: "#93C524",
+    ink: "#1B3158",
+  },
+  {
+    icon: "🎮",
+    title: "Aprendizaje jugando",
+    text: "Usamos juegos y actividades creativas para que los niños aprendan naturalmente y con alegría.",
+    color: "#28A8E3",
+    ink: "#0F2240",
+  },
+];
 const Home = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -748,50 +776,52 @@ const Home = () => {
         </div>
       </section>
 
-      {/* BENEFICIOS */}
-      <section className="beneficios-section">
-        <div className="wrap beneficios-grid">
-          <div className="beneficio-item">
-            <div
-              className="beneficio-circulo"
-              style={{ backgroundColor: "#F25141" }}
-            >
-              🎓
+      {/* ==========================================================
+          BENEFICIOS: sección "anclada" con deslizamiento horizontal.
+          Mientras bajas, el marco (.hs-sticky) se queda fijo en pantalla y
+          la fila (.hs-track) se desplaza de lado. Lo controla el hook
+          useScrollEffects gracias al atributo data-hscroll.
+          Estructura:
+            section[data-hscroll]  → alta: su altura es el "recorrido" del scroll
+              └─ .hs-sticky        → marco fijo del tamaño de la pantalla
+                   ├─ .hs-track    → fila que se mueve: introducción + 3 tarjetas
+                   └─ .hs-progress → barrita de avance
+          ========================================================== */}
+      <section className="beneficios-section" id="beneficios" data-hscroll>
+        <div className="hs-sticky">
+          <div className="hs-track">
+
+            {/* Primer panel: título de la sección */}
+            <div className="hs-intro">
+              <span className="nos-eyebrow" data-reveal>Beneficios</span>
+              <h2 className="hs-title" data-split>
+                <Words text="Lo que hace especial" />
+                <Words text="nuestro jardín" className="nos-title-highlight" start={3} />
+              </h2>
+              <p className="hs-hint" data-reveal style={{ "--d": ".16s" }}>
+                Sigue bajando
+                <i className="fas fa-arrow-right" aria-hidden="true"></i>
+              </p>
             </div>
-            <h3>Excelentes docentes</h3>
-            <p>
-              Todos nuestros educadores son profesionales en pedagogía infantil
-              con amplia experiencia en primera infancia.
-            </p>
+
+            {/* Una tarjeta por beneficio. --tone y --ink llegan al CSS */}
+            {BENEFITS.map((benefit, i) => (
+              <article
+                key={benefit.title}
+                className="beneficio-card"
+                style={{ "--tone": benefit.color, "--ink": benefit.ink }}
+              >
+                <span className="beneficio-num" aria-hidden="true">0{i + 1}</span>
+                {/* El círculo del emoji gira un poco según el avance (--hs) */}
+                <span className="beneficio-circulo" aria-hidden="true">{benefit.icon}</span>
+                <h3>{benefit.title}</h3>
+                <p>{benefit.text}</p>
+              </article>
+            ))}
           </div>
 
-          <div className="beneficio-item">
-            <div
-              className="beneficio-circulo"
-              style={{ backgroundColor: "#93C524" }}
-            >
-              🍎
-            </div>
-            <h3>Alimentación Saludable</h3>
-            <p>
-              Cada día servimos menús balanceados preparados con ingredientes
-              frescos y seguimos estrictos protocolos de higiene.
-            </p>
-          </div>
-
-          <div className="beneficio-item">
-            <div
-              className="beneficio-circulo"
-              style={{ backgroundColor: "#28A8E3" }}
-            >
-              🎮
-            </div>
-            <h3>Aprendizaje Jugando</h3>
-            <p>
-              Usamos juegos y actividades creativas para que los niños aprendan
-              naturalmente y con alegría.
-            </p>
-          </div>
+          {/* Barrita que se llena según el avance de la sección */}
+          <div className="hs-progress" aria-hidden="true"><span></span></div>
         </div>
       </section>
 

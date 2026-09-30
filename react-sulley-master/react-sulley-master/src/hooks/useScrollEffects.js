@@ -22,6 +22,12 @@ import { useEffect } from "react";
     data-stack            Tarjetas apiladas (sticky). La tarjeta que queda
                           debajo se encoge y oscurece cuando la siguiente
                           la cubre. Escribe la variable CSS --stack (0 a 1).
+    data-hscroll          Sección "anclada": se queda fija en pantalla mientras
+                          bajas y su contenido (.hs-track) se desliza de lado.
+                          El hook le da a la sección una altura igual a la
+                          distancia horizontal a recorrer + una pantalla, y
+                          convierte el scroll vertical en movimiento horizontal.
+                          Escribe --hs (0 a 1) con el avance.
 
   Además guarda cuánto has bajado (0 a 1) en la variable CSS --scroll, que usa
   la barra de progreso de arriba.
@@ -46,6 +52,20 @@ export default function useScrollEffects() {
       words: [...el.querySelectorAll(".sw-in")],
     }));
     const stackCards = [...document.querySelectorAll("[data-stack]")];
+    const hscrollBlocks = [...document.querySelectorAll("[data-hscroll]")].map((el) => ({
+      el,
+      track: el.querySelector(".hs-track"),
+    }));
+
+    // Mide cuánto hay que deslizar de lado y le da a cada sección esa altura de scroll.
+    // (Se vuelve a medir al cambiar el tamaño de la ventana o al cargar las fuentes.)
+    function measure() {
+      if (reduceMotion) return; // sin animación no se ancla: queda como una rejilla normal
+      hscrollBlocks.forEach(({ el, track }) => {
+        const distance = Math.max(0, track.scrollWidth - track.parentElement.clientWidth);
+        el.style.height = `${distance + window.innerHeight}px`;
+      });
+    }
 
     // 2) Vigilamos cuáles están en pantalla para no calcular de más
     const onScreen = new Set();
@@ -59,9 +79,13 @@ export default function useScrollEffects() {
       },
       { rootMargin: "20% 0px" }
     );
-    [...parallaxEls, ...slideEls, ...scrubBlocks.map((b) => b.el), ...stackCards].forEach((el) =>
-      io.observe(el)
-    );
+    [
+      ...parallaxEls,
+      ...slideEls,
+      ...scrubBlocks.map((b) => b.el),
+      ...stackCards,
+      ...hscrollBlocks.map((b) => b.el),
+    ].forEach((el) => io.observe(el));
 
     // 3) Lo que se recalcula en cada fotograma
     function update() {
@@ -108,6 +132,17 @@ export default function useScrollEffects() {
         });
       });
 
+      // --- Sección anclada con deslizamiento horizontal ---
+      hscrollBlocks.forEach(({ el, track }) => {
+        if (!onScreen.has(el)) return;
+        // cuánto scroll vertical "sobra" mientras la sección está anclada
+        const scrollable = el.offsetHeight - vh;
+        const progress = clamp(-el.getBoundingClientRect().top / (scrollable || 1));
+        const distance = Math.max(0, track.scrollWidth - track.parentElement.clientWidth);
+        track.style.translate = `${(-progress * distance).toFixed(1)}px 0`;
+        el.style.setProperty("--hs", progress.toFixed(3));
+      });
+
       // --- Tarjetas apiladas ---
       stackCards.forEach((card, i) => {
         const next = stackCards[i + 1];
@@ -133,13 +168,20 @@ export default function useScrollEffects() {
         ticking = false;
       });
     };
+    const onResize = () => {
+      measure();
+      onScroll();
+    };
     window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
+    window.addEventListener("resize", onResize);
+    document.fonts?.ready.then(onResize); // las fuentes cambian los anchos: medimos otra vez
+    measure();
     update(); // estado inicial
 
     return () => {
       window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
+      window.removeEventListener("resize", onResize);
+      hscrollBlocks.forEach(({ el }) => el.style.removeProperty("height"));
       io.disconnect();
       root.style.removeProperty("--scroll");
     };
