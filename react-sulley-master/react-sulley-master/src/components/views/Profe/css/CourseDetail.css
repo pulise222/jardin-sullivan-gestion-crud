@@ -1,0 +1,12 @@
+.course-detail { padding: 1.25rem; }
+.cd-header { display:flex; justify-content:space-between; align-items:center; margin-bottom: .75rem; }
+.cd-breadcrumb { font-size: 2rem; font-weight: 600; }
+.cd-crumb { opacity: .75; }
+.cd-sep { margin: 0 .5rem; opacity: .5; }
+.cd-curso { font-weight: 700; }
+.cd-actions .cd-primary { padding:.6rem 1rem; border:none; border-radius:.5rem; background:#0f6; color:#083; cursor:pointer; }
+.cd-subtitle { margin-bottom: .75rem; color:#557; }
+.cd-tabs { display:flex; gap:1rem; border-bottom:1px solid #e5eef5; margin-bottom:1rem; }
+.cd-tab { background:none; border:none; padding:.75rem 0; font-weight:600; cursor:pointer; color:#6b7b8b; }
+.cd-tab.active { color:#1e3554; border-bottom:2px solid #1e9; }
+.cd-content .cd-panel { background:#fff; border-radius:.75rem; padding:1rem; box-shadow: 0 1px 2px rgba(0,0,0,.05); }

@@ -1,0 +1,88 @@
+/* src/components/admin/ImportEstudiantes.css */
+.import-wrapper {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.import-card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 20px 22px;
+  box-shadow: 0 8px 18px rgba(0,0,0,.06);
+  margin-bottom: 20px;
+}
+
+.import-card h2 {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+.hint {
+  color: #555;
+  margin: 0 0 10px;
+}
+
+.actions-row {
+  margin: 10px 0 16px;
+}
+
+.secondary {
+  background: #e9eef6;
+  color: #163463;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.import-form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.file-label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.import-form button {
+  background: #1f6bd5;
+  border: none;
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.result-box, .error-box {
+  margin-top: 18px;
+}
+
+.resume {
+  padding-left: 16px;
+}
+
+.errors-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+.errors-table th, .errors-table td {
+  border: 1px solid #e7e7e7;
+  padding: 6px 8px;
+}
+.format-help {
+  background: #f8fafc;
+  border: 1px solid #eff3f8;
+  padding: 16px;
+  border-radius: 8px;
+}
+.format-help code {
+  background: #f1f5fb;
+  padding: 2px 6px;
+  border-radius: 4px;
+}

@@ -1,0 +1,49 @@
+# ==========================================================
+# .gitignore: lista de cosas que Git NO debe guardar ni subir
+# (los comentarios van siempre en su propia línea)
+# ==========================================================
+
+# --- Python / Django (backend) ---
+# Entorno virtual: se recrea con "pip install -r requirements.txt"
+venv/
+# Archivos compilados que Python genera solo
+__pycache__/
+*.py[cod]
+staticfiles/
+
+# --- Base de datos local (se regenera con migraciones y datos de ejemplo) ---
+db.sqlite3
+db.sqlite3.old
+db.sqlite3-journal
+
+# --- Archivos subidos por usuarios durante las pruebas (fotos, etc.) ---
+media/
+
+# --- Node / React (frontend) ---
+# Librerías de npm: se recrean con "npm install"
+node_modules/
+# Carpeta de producción que genera "npm run build"
+dist/
+.vite/
+.eslintcache
+
+# --- Secretos y configuración local: NUNCA se suben ---
+.env
+.env.*
+*.env
+# Excepción: la plantilla sin secretos sí se puede subir
+!.env.example
+
+# --- Logs ---
+*.log
+npm-debug.log*
+
+# --- Editores y sistema operativo ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# --- Notas personales de trabajo (no van al portafolio público) ---
+README_IMPORTANTE.txt
+GUIA_MAESTRA_SULLIVAN_PORTAFOLIO.md

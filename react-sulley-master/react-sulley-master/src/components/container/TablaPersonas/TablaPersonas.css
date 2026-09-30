@@ -1,0 +1,100 @@
+
+.persona {
+  padding: 20px;
+  background-color: #fffbe2;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.persona h2 {
+  color: #1A3258;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+
+
+
+.btn-buscar {
+  background-color: var(--blue);
+  color: white;
+}
+.btn-agregar {
+  background-color: var(--blue);
+  color: white;
+}
+
+.icon-style {
+  font-size: 18px;
+}
+
+
+.content-table { 
+  width: 100%;
+  border: 4px solid var(--blue);
+  border-radius: 5px;
+  overflow: auto;
+  border-collapse: collapse;
+  font-size: 15px;
+  text-align: left;
+  background-color: white;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+  
+
+.content-table th,
+.content-table td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #e1eef4;
+}
+
+.content-table thead th {
+  background: var(--blue);
+  color: white;
+  font-weight: bold;
+  font-size: 15px;
+}
+
+.content-table tbody tr:hover, .content-table tbody tr:hover td{
+  background-color: #eaf9ff;
+  /* color: #fff; */
+}
+
+.content-table tbody td {
+  color: #00557f;
+}
+
+.btn-group {
+  display: inline-flex;
+  vertical-align: middle;
+}
+
+.btn-group > .btn {
+  position: relative;
+  flex: 1 1 auto;
+  margin-left: -1px;
+  padding: 15px;
+  border-top-left-radius: 0.25rem;
+  border-bottom-left-radius: 0.25rem;
+}
+
+.btn-group > .btn:first-child {
+  margin-left: 0;
+  background-color: #1A3258;
+}
+
+.btn-group > .btn:last-child {
+  border-top-right-radius: 0.25rem;
+  border-bottom-right-radius: 0.25rem;
+  background-color: #ff0000;
+}
+
+.btn-group > .btn:not(:last-child) {
+  border-right: 1px solid #fff;
+}
+
+.btn i {
+  color: #fff;
+}

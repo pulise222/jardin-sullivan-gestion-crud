@@ -1,0 +1,448 @@
+/* Estilos generales */
+        body {
+            font-family: 'Arial', sans-serif;
+        }
+        
+        /* Navbar */
+        .navbar-custom {
+            background-color: #FFF6E7;
+            padding: 10px 0;
+            border-bottom: 2px solid #FEBF22;
+        }
+        .navbar-custom .nav-link {
+            color: #1B3158 !important;
+            font-weight: 500;
+            margin: 0 8px;
+            transition: color 0.3s;
+        }
+        .navbar-custom .nav-link:hover {
+            color: #FEBF22 !important;
+        }
+        .navbar-custom .navbar-brand img {
+            height: 60px;
+        }
+        .navbar-custom .navbar-toggler {
+            border-color: #1B3158;
+        }
+        .navbar-custom .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3e%3cpath stroke='rgba(27, 49, 88, 1)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+        }
+        /* Botón de Iniciar Sesión */
+        .btn-login {
+            background-color: #FEBF22;
+            color: #1B3158 !important;
+            border-radius: 20px;
+            padding: 8px 15px;
+            font-weight: 600;
+            margin-left: 10px;
+            transition: transform 0.3s;
+            border: none;
+        }
+        .btn-login:hover {
+            transform: scale(1.05);
+        }
+        
+
+        /* Sección de Bienvenida */
+        .welcome-section {
+            background-color: #FFF6E7;
+            color: #1B3158;
+            padding: 80px 0;
+            text-align: center;
+        }
+        .welcome-section h1 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            padding-left: 0px;
+            margin-bottom: 30px;
+            float: left;
+        }
+        .welcome-section p {
+            font-size: 1.4rem;
+            max-width: 800px;
+            color: black;
+            margin: 0 auto 30px;
+            float: left;
+            text-align: left;
+        }
+        /* Botón de Inscripción */
+        .btn-enroll {
+            background-color: #FEBF22;
+            color: #1B3158 !important;
+            border-radius: 30px;
+            padding: 10px 30px;
+            padding-left: 20px;
+            float: right;
+            font-weight: 600;
+            border: none;
+            transition: transform 0.3s;
+            margin-top: 100px;
+        }       
+        .btn-enroll:hover {
+            transform: scale(1.05);
+        }
+        /* Clase para la imagen - Añade esto en tu <style> */
+        .imagen img {
+        display: block;           /* Para que funcione margin auto */
+        max-width: 100%;         /* Ajuste responsivo */
+        height: 590px;          /* Mantiene proporciones */
+        width: 60%;              /* Tamaño relativo al contenedor (ajusta según necesidad) */
+        margin: 20px auto;       /* Centrado vertical/horizontal (20px arriba/abajo) */
+        border-radius: 8px;       /* Opcional: bordes redondeados */
+        }
+        /* Estilos para la sección Nosotros */
+        section .nos {
+            text-align: center;       /* Centra el contenido */
+            padding: 40px 10px;      /* Espaciado interno (ajusta según necesidad) */
+            
+            color: #1B3158;            /* Color de texto blanco para contraste */
+        }
+
+        section .nos h2 {
+            font-size: 2.5rem;       /* Tamaño del  título (ajustable) */
+            font-weight: bold;
+            
+        }
+
+        .btn-enroll {
+        background-color: #FEBF22;
+        color: #1B3158 !important;
+        border-radius: 30px;
+        padding: 10px 30px;
+        padding-left: 30px;
+        float: right;
+        font-weight: 600;
+        border: none;
+        transition: transform 0.3s;
+        margin-top: 10px; /* Ajusta este valor según necesites */
+        }
+        .container.my-5 {
+        margin-top: 1rem !important; /* Reduce el espacio superior */
+        }
+
+        /* columnas texto */
+        .col-md-6 {
+            padding: 0 15px; /* Reduce el espacio interno */
+            max-width: 45%;  /* Reduce el ancho de cada columna */
+            padding-left: 110px;
+        }
+
+        /* Estilos para la sección de grupos */
+    .grupos-section {
+        background-color: #FFF6E7;
+        padding: 40px 0;
+    }
+
+    .grupos-section h2 {
+        color: #1B3158;
+        font-weight: bold;
+        font-size: 2.2rem;
+    }
+
+    .grupo-card {
+        padding: 15px;
+    }
+
+    .grupo-content {
+        background-color: white;
+        border-radius: 15px;
+        padding: 20px;
+        height: 100%;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        transition: transform 0.3s;
+    }
+
+    .grupo-content:hover {
+        transform: translateY(-5px);
+    }
+
+    .grupo-content h3 {
+        color: #FEBF22;
+        font-size: 1.5rem;
+        margin-bottom: 10px;
+    }
+
+    .edad {
+        color: #1B3158;
+        font-weight: 600;
+        font-size: 1.1rem;
+        margin-bottom: 10px;
+    }
+
+    .descripcion {
+        color: #333;
+        margin-bottom: 15px;
+        min-height: 60px;
+    }
+
+    .actividades {
+        padding-left: 20px;
+        color: #555;
+    }
+
+    .actividades li {
+        margin-bottom: 5px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .grupo-card {
+            margin-bottom: 20px;
+        }
+    }
+
+/* Estilos para la sección de beneficios */
+.beneficios-section {
+        padding: 0 0;
+        background-color: #FFF6E7;
+    }
+
+    .beneficio-circulo {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 2.5rem;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .beneficio-item h3 {
+        color: #1B3158;
+        font-size: 1.5rem;
+        margin: 15px 0;
+    }
+
+    .beneficio-item p {
+        color: #333;
+        padding: 0 20px;
+    }
+
+    /* Si quieres añadir el cuarto círculo (naranja) que mencionaste */
+    .beneficio-circulo.extra {
+        background-color: #EA8F17 !important;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .beneficio-item {
+            margin-bottom: 40px;
+        }
+        
+        .beneficio-circulo {
+            width: 100px;
+            height: 100px;
+            font-size: 2rem;
+        }
+    }
+
+    .matricula-banner-horizontal {
+        background-color: #1A3258;
+        padding: 40px 0;
+    }
+    
+    .matricula-banner-horizontal h2 {
+        font-size: 1.2 rem;
+        font-weight: 400; /* Extra negrita */
+        color: white;
+        margin: 0;
+        display: inline-block;
+        letter-spacing: 0.5px; /* Opcional: para mejor legibilidad */
+    }
+    
+    .matricula-btn-horizontal {
+        background-color: #FBC94E;
+        color: #1A3258;
+        padding: 12px 30px;
+        border-radius: 30px;
+        font-size: 1.1rem;
+        font-weight: 700;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.3s;
+        border: none;
+    }
+    
+    .matricula-btn-horizontal:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    
+    @media (max-width: 768px) {
+        .matricula-banner-horizontal h2 {
+            font-size: 1.4rem;
+            display: block;
+            margin-bottom: 15px;
+        }
+        
+        .matricula-btn-horizontal {
+            padding: 10px 25px;
+            font-size: 1rem;
+        }
+    }
+
+    .metodologia-section {
+        background-color: #FFF6E7;
+        padding: 80px 0;
+    }
+    
+    .titulo-metodologia {
+        color: #1B3158;
+        font-size: 2.5rem;
+        font-weight: 700;
+        position: relative;
+        padding-bottom: 15px;
+    }
+    
+    .titulo-metodologia:after {
+        content: '';
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 80px;
+        height: 4px;
+        background-color: #FEBF22;
+    }
+    
+    .texto-metodologia {
+        color: #333;
+        font-size: 1.1rem;
+        line-height: 1.8;
+    }
+    
+    .imagen-metodologia img {
+        border-radius: 10px;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        transition: transform 0.3s;
+    }
+    
+    .imagen-metodologia img:hover {
+        transform: scale(1.02);
+    }
+    
+    @media (max-width: 992px) {
+        .titulo-metodologia {
+            font-size: 2rem;
+        }
+        
+        .texto-metodologia {
+            font-size: 1rem;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .metodologia-section {
+            padding: 60px 0;
+        }
+        
+        .titulo-metodologia {
+            text-align: center;
+        }
+        
+        .titulo-metodologia:after {
+            left: 50%;
+            transform: translateX(-50%);
+        }
+    }
+    .footer-section {
+        background-color: #FFF6E7;
+        color: #000;
+        padding: 60px 0 30px;
+        position: relative;
+    }
+    
+    .footer-section h3 {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+        color: #1B3158;
+        position: relative;
+        padding-bottom: 10px;
+    }
+    
+    .footer-section h3:after {
+        content: '';
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 50px;
+        height: 3px;
+        background-color: #FEBF22;
+    }
+    
+    .footer-section p {
+        margin-bottom: 8px;
+    }
+    
+    .footer-section ul {
+        list-style: none;
+        padding-left: 0;
+    }
+    
+    .footer-section ul li {
+        margin-bottom: 5px;
+        position: relative;
+        padding-left: 15px;
+    }
+    
+    .footer-section ul li:before {
+        content: '•';
+        position: absolute;
+        left: 0;
+        color: #FEBF22;
+    }
+    
+    .footer-map {
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .footer-map img {
+        max-height: 400px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        transition: transform 0.3s;
+    }
+    
+    .footer-map img:hover {
+        transform: scale(1.02);
+    }
+    
+    .btn-to-top {
+        background-color: #1B3158;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 30px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        transition: all 0.3s;
+        font-weight: 600;
+    }
+    
+    .btn-to-top:hover {
+        background-color: #0F2240;
+        transform: translateY(-3px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    
+    @media (max-width: 768px) {
+        .footer-section {
+            padding: 40px 0 30px;
+        }
+        
+        .footer-section h3 {
+            font-size: 1.5rem;
+        }
+        
+        .footer-map img {
+            max-height: 200px;
+            
+        }
+    }
+
+    

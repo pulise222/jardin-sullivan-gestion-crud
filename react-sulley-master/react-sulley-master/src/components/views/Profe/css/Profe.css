@@ -1,0 +1,82 @@
+/* src/pages/Profe.css */
+.profe-container {
+  display: grid;
+  grid-template-columns: minmax(250px, 30px) 1fr;
+  height: 100dvh;
+}
+
+.main-content-profe {
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    background-color: #f1f8f6;
+    overflow: auto;
+}
+
+/* Navbar */
+.navbar .greeting {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.navbar .notification img {
+  width: 24px;
+  cursor: pointer;
+}
+
+/* Tarjetas */
+.dashboard-cards {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+.dashboard-cards .card {
+  background: #fff;
+  padding: 1rem;
+  border-radius: 8px;
+  flex: 1;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+
+/* Asistencia */
+.attendance-section {
+  margin-top: 2rem;
+}
+.attendance-circle {
+  width: 100px;
+  height: 100px;
+  background: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  font-size: 1.5rem;
+  margin-top: 0.5rem;
+}
+
+/* Actividades recientes */
+.recent-activities {
+  margin-top: 2rem;
+}
+.recent-activities ul {
+  list-style: none;
+  padding: 0;
+}
+.recent-activities li {
+  background: #fff;
+  margin-bottom: 0.5rem;
+  padding: 0.75rem;
+  border-radius: 4px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  font-size: 1.2rem;
+}
+
+/* Placeholder de otras vistas */
+.view-placeholder {
+  font-size: 1.25rem;
+  color: #666;
+  padding: 2rem;
+  text-align: center;
+}
+

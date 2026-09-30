@@ -1,0 +1,11 @@
+.admin-layout {
+  display: flex;
+  height: 100vh; /* Ocupa toda la altura de la pantalla */
+  width: 100%; 
+}
+.admin-content {
+  width: 85vw;
+  background-color: #f8fafc; /* gris claro */
+  overflow-y: auto;
+  box-sizing: border-box;
+}
