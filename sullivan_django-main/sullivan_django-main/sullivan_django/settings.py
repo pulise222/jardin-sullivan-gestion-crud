@@ -41,9 +41,15 @@ SECRET_KEY = os.environ.get(
 # útil para desarrolladores. En producción DEBE ser False para no revelar código.
 DEBUG = os.environ.get('DJANGO_DEBUG', 'True').lower() in ('true', '1')
 
+# Freno de seguridad: si alguien publica el proyecto con DEBUG apagado (producción) pero olvida
+# definir su propia clave secreta, Django se niega a arrancar en lugar de usar la del repositorio.
+if not DEBUG and SECRET_KEY.startswith('django-insecure'):
+    from django.core.exceptions import ImproperlyConfigured
+    raise ImproperlyConfigured('Define DJANGO_SECRET_KEY antes de ejecutar con DJANGO_DEBUG=False (ver .env.example).')
+
 # ALLOWED_HOSTS: Lista de dominios o IPs desde los cuales se puede acceder al backend.
-# En desarrollo ('*') permite localhost y 127.0.0.1.
-ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', '*').split(',')
+# Por defecto solo la máquina local (antes era '*', que acepta cualquier dominio).
+ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 # Ruta opcional de wkhtmltopdf (para exportar reportes HTML a PDF)
 WKHTMLTOPDF_CMD = os.environ.get('WKHTMLTOPDF_CMD', r"C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe")
@@ -213,8 +219,12 @@ SIMPLE_JWT = {
 # ==============================================================================
 # Por seguridad, los navegadores web bloquean peticiones JavaScript desde un dominio/puerto
 # (ej. http://localhost:5173 de React) hacia otro (ej. http://127.0.0.1:8000 de Django).
-# CORS_ALLOW_ALL_ORIGINS = True le dice al navegador que permita la conexión en desarrollo.
-CORS_ALLOW_ALL_ORIGINS = True
+# Antes se permitía CUALQUIER origen (CORS_ALLOW_ALL_ORIGINS = True), lo que deja que cualquier
+# página web haga peticiones a la API. Ahora solo se aceptan los orígenes de la lista; por defecto
+# el servidor de desarrollo de React. Para publicar, define DJANGO_CORS_ORIGINS con la URL del front.
+CORS_ALLOWED_ORIGINS = os.environ.get(
+    'DJANGO_CORS_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173'
+).split(',')
 CORS_ALLOW_CREDENTIALS = True
 
 
