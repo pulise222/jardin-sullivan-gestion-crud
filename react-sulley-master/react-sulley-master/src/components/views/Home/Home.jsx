@@ -890,7 +890,7 @@ const Home = () => {
                   <span className="footer-ico" aria-hidden="true"><i className="fas fa-location-dot"></i></span>
                   <div>
                     <strong>Dirección</strong>
-                    <p>Calle 45 #12-34, Bogotá</p>
+                    <p>Carrera 87, Calle 53 Sur #49A, Bogotá</p>
                   </div>
                 </li>
 
@@ -955,7 +955,7 @@ const Home = () => {
             {/* Franja final: derechos, privacidad y botón para volver arriba */}
             <div className="footer-bottom">
               {/* new Date().getFullYear() pone el año actual solo, sin tener que editarlo cada enero */}
-              <p>© {new Date().getFullYear()} Jardín Infantil Sullivan · <a href="#">Políticas de privacidad</a></p>
+              <p>© {new Date().getFullYear()} Jardín Infantil Sullivan</p>
               <a href="#inicio" className="footer-top" aria-label="Volver al inicio de la página">
                 <i className="fas fa-arrow-up" aria-hidden="true"></i>
               </a>
