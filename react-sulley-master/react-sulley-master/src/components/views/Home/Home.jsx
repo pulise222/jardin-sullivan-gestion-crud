@@ -3,6 +3,9 @@ import { useEffect, useState, useRef, useMemo } from "react";
 // Link navega entre páginas de React SIN recargar el navegador (a diferencia de <a href>)
 import { Link } from "react-router-dom";
 import "./Home.css";
+// Hook que anima cosas según el scroll y componente que divide títulos en palabras
+import useScrollEffects from "../../../hooks/useScrollEffects";
+import { Words } from "../../common/ScrollText";
 import logo from "../../../assets/logo.png";
 import pelados from "../../../assets/pelados.png";
 import pelados2 from "../../../assets/pelados2.png";
@@ -115,6 +118,52 @@ const PILLARS = [
     color: "#93C524",
   },
 ];
+
+/*
+  GRUPOS por edad. `color` es el fondo de la tarjeta y `ink` el color del texto
+  encima (blanco sobre el rojo para que se lea bien).
+*/
+const GROUPS = [
+  {
+    name: "Organiza",
+    age: "1–3",
+    description: "Pequeños exploradores que describen el mundo a través de los sentidos.",
+    activities: ["Juegos sensoriales", "Rondas infantiles", "Manipulación de materiales", "Desarrollo de autonomía"],
+    icon: "🌱",
+    color: "#FEBF22",
+    ink: "#1B3158",
+  },
+  {
+    name: "Capullitos",
+    age: "3–4",
+    description: "Potentes comunicadores que expanden su mundo a través del lenguaje.",
+    activities: ["Dramatizaciones", "Actividades artísticas", "Juegos colaborativos", "Desarrollo de independencia"],
+    icon: "🦋",
+    color: "#28A8E3",
+    ink: "#0F2240",
+  },
+  {
+    name: "Hormiguitas",
+    age: "4–5",
+    description: "Jóvenes científicos naturales que exploran mediante proyectos.",
+    activities: ["Trabajo en equipo", "Resolución de desafíos", "Cultivo de huertas", "Pensamiento crítico"],
+    icon: "🐜",
+    color: "#93C524",
+    ink: "#1B3158",
+  },
+  {
+    name: "Colonizadores",
+    age: "5–6",
+    description: "Futuros líderes preparados para conquistar nuevos retos.",
+    activities: ["Conceptos académicos", "Proyectos innovadores", "Tecnología responsable", "Desarrollo de resiliencia"],
+    icon: "🚀",
+    color: "#F25141",
+    ink: "#FFFFFF",
+  },
+];
+
+// Palabras de la banda que se desliza (todas salen de los textos del jardín)
+const MARQUEE_WORDS = ["Juego", "Curiosidad", "Creatividad", "Respeto", "Exploración", "Empatía"];
 const Home = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -125,6 +174,9 @@ const Home = () => {
   const scrollerRef = useRef(null);
   const [activeId, setActiveId] = useState("inicio");
   const heroRef = useRef(null);
+
+  // Efectos ligados al scroll: parallax, texto que se enciende, tarjetas apiladas, barra de progreso
+  useScrollEffects();
 
   
 
@@ -192,10 +244,10 @@ const Home = () => {
   }, []);
 
   // Aparecer al hacer scroll (reutilizable): cualquier elemento con el atributo
-  // data-reveal empieza invisible y, cuando entra en pantalla, recibe la clase
+  // data-reveal (bloque) o data-split (título palabra por palabra) empieza invisible y, cuando entra en pantalla, recibe la clase
   // "is-visible". El CSS se encarga de la animación (ver "REVEAL" en Home.css).
   useEffect(() => {
-    const items = document.querySelectorAll("[data-reveal]");
+    const items = document.querySelectorAll("[data-reveal], [data-split]");
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -214,11 +266,18 @@ const Home = () => {
   useEffect(() => {
     const root = document.getElementById("root");
     if (!root) return;
+    // index.css le pone al #root overflow:hidden y width:100vw (pensado para los paneles).
+    // En la landing eso rompe dos cosas: (1) position:sticky no funciona dentro de un
+    // contenedor con overflow, y (2) 100vw + la barra de scroll crea una barra horizontal.
+    // Solo mientras la landing está abierta lo corregimos, y al salir lo devolvemos.
     const prevOverflow = root.style.overflow;
-    root.style.overflow = "auto";
+    const prevWidth = root.style.width;
+    root.style.overflow = "visible";
+    root.style.width = "100%";
     root.classList.add("root-scroll-enabled");
     return () => {
       root.style.overflow = prevOverflow;
+      root.style.width = prevWidth;
       root.classList.remove("root-scroll-enabled");
     };
   }, []);
@@ -280,6 +339,9 @@ const Home = () => {
 
   return (
     <div className="home">
+      {/* Barra de progreso de lectura (arriba del todo) */}
+      <div className="scroll-progress" aria-hidden="true"></div>
+
       {/* ============ NAV: barra flotante tipo "píldora" ============ */}
       <header className={`nav ${scrolled ? "scrolled" : ""}`}>
         <div className="nav-shell">
@@ -349,9 +411,14 @@ const Home = () => {
               <span>{HERO.badgeText}</span>
             </div>
 
-            <h1 className="hero-title reveal" style={{ "--d": ".15s" }}>
-              {HERO.titlePrefix}{" "}
-              <span className="hero-title-highlight">{HERO.titleHighlight}</span>
+            {/* data-split + <Words>: cada palabra sube desde una "ventana" oculta, una tras otra */}
+            <h1 className="hero-title" data-split style={{ "--d": ".1s" }}>
+              <Words text={HERO.titlePrefix} />
+              <Words
+                text={HERO.titleHighlight}
+                className="hero-title-highlight"
+                start={HERO.titlePrefix.split(" ").length}
+              />
             </h1>
 
             <p className="hero-lead reveal" style={{ "--d": ".28s" }}>{HERO.lead}</p>
@@ -375,7 +442,12 @@ const Home = () => {
               </div>
 
               {HERO.chips.map((chip, i) => (
-                <div key={chip.title} className={`hero-chip hero-chip-${i + 1}`}>
+                // data-parallax: cada etiqueta se mueve a distinta velocidad que la foto (efecto de profundidad)
+                <div
+                  key={chip.title}
+                  className={`hero-chip hero-chip-${i + 1}`}
+                  data-parallax={i === 0 ? "0.09" : "-0.06"}
+                >
                   <span className="hero-chip-icon" aria-hidden="true">{chip.icon}</span>
                   <div>
                     <strong>{chip.title}</strong>
@@ -409,7 +481,7 @@ const Home = () => {
           <div className="events-header">
             {/* "Eyebrow": textito pequeño sobre el título que da contexto */}
             <span className="events-eyebrow">Agenda</span>
-            <h2 className="events-title">Eventos</h2>
+            <h2 className="events-title" data-split><Words text="Eventos" /></h2>
             <p className="events-sub">
               Momentos para aprender, jugar y compartir en familia.
             </p>
@@ -535,19 +607,19 @@ const Home = () => {
           <div className="nos-intro">
             {/* Mosaico: una foto grande y otra pequeña que se superpone */}
             <div className="nos-media" data-reveal="left">
-              <div className="nos-photo nos-photo-main">
+              <div className="nos-photo nos-photo-main" data-parallax="0.04">
                 <img src={pelados2} alt="Profesora y niños disfrazados posando en el jardín" loading="lazy" />
               </div>
-              <div className="nos-photo nos-photo-small">
+              <div className="nos-photo nos-photo-small" data-parallax="0.13">
                 <img src={jugando} alt="Niños jugando al aire libre" loading="lazy" />
               </div>
             </div>
 
             <div className="nos-text">
               <span className="nos-eyebrow" data-reveal>Nosotros</span>
-              <h2 className="nos-title" data-reveal style={{ "--d": ".08s" }}>
-                Creemos en aprender{" "}
-                <span className="nos-title-highlight">jugando</span>
+              <h2 className="nos-title" data-split style={{ "--d": ".08s" }}>
+                <Words text="Creemos en aprender" />
+                <Words text="jugando" className="nos-title-highlight" start={3} />
               </h2>
               <p className="nos-lead" data-reveal style={{ "--d": ".16s" }}>
                 En Jardín Sullivan creemos en el aprendizaje activo, el juego y
@@ -582,9 +654,10 @@ const Home = () => {
 
           {/* --- Frase de cierre --- */}
           <blockquote className="nos-quote" data-reveal>
-            <p className="nos-quote-text">
-              Prepararlos no solo para la escuela,{" "}
-              <span className="nos-title-highlight">sino para la vida</span>.
+            {/* data-scrub: las palabras se "encienden" una a una mientras bajas */}
+            <p className="nos-quote-text" data-scrub>
+              <Words scrub text="Prepararlos no solo para la escuela," />
+              <Words scrub text="sino para la vida." className="nos-title-highlight" start={6} />
             </p>
             <p className="nos-quote-sub">
               Ayudándoles a construir una base sólida de confianza y autoestima.
@@ -593,68 +666,71 @@ const Home = () => {
         </div>
       </section>
 
-      {/* GRUPOS */}
+      {/* ==========================================================
+          BANDA DE PALABRAS: dos filas gigantes que se deslizan de lado
+          mientras bajas (data-slide-x). Es decorativa: aria-hidden.
+          ========================================================== */}
+      <div className="marquee" aria-hidden="true">
+        <div className="marquee-row" data-slide-x="0.35">
+          {[...MARQUEE_WORDS, ...MARQUEE_WORDS].map((word, i) => (
+            <span key={i}>{word}</span>
+          ))}
+        </div>
+        <div className="marquee-row marquee-row-outline" data-slide-x="-0.35">
+          {[...MARQUEE_WORDS].reverse().concat([...MARQUEE_WORDS].reverse()).map((word, i) => (
+            <span key={i}>{word}</span>
+          ))}
+        </div>
+      </div>
+
+      {/* ==========================================================
+          GRUPOS: una tarjeta por edad. Se apilan al hacer scroll
+          (data-stack + position: sticky). --i, --tone y --ink llegan al CSS.
+          ========================================================== */}
       <section className="grupos-section" id="programas">
         <div className="wrap">
-          <h2 className="title-center">Nuestros Grupos</h2>
-          <div className="grupos-grid">
-            <article className="grupo-card">
-              <h3>Organiza</h3>
-              <p className="edad">Edad 1 a 3 años</p>
-              <p className="descripcion">
-                Pequeños exploradores que describen el mundo a través de los
-                sentidos.
-              </p>
-              <ul className="actividades">
-                <li>Juegos sensoriales</li>
-                <li>Rondas infantiles</li>
-                <li>Manipulación de materiales</li>
-                <li>Desarrollo de autonomía</li>
-              </ul>
-            </article>
+          <div className="grupos-head">
+            <span className="nos-eyebrow" data-reveal>Programas</span>
+            {/* data-split: el título sube palabra por palabra al aparecer */}
+            <h2 className="grupos-title" data-split>
+              <Words text="Un grupo para cada" />
+              <Words text="etapa" className="nos-title-highlight" start={4} />
+            </h2>
+            <p className="grupos-sub" data-reveal style={{ "--d": ".16s" }}>
+              Cada grupo acompaña a los niños según su edad, con actividades
+              pensadas para su momento de desarrollo.
+            </p>
+          </div>
 
-            <article className="grupo-card">
-              <h3>Capullitos</h3>
-              <p className="edad">Edad 3 a 4 años</p>
-              <p className="descripcion">
-                Potentes comunicadores que expanden su mundo a través del
-                lenguaje.
-              </p>
-              <ul className="actividades">
-                <li>Dramatizaciones</li>
-                <li>Actividades artísticas</li>
-                <li>Juegos colaborativos</li>
-                <li>Desarrollo de independencia</li>
-              </ul>
-            </article>
+          <div className="grupos-stack">
+            {GROUPS.map((group, i) => (
+              <article
+                key={group.name}
+                className="grupo-card"
+                data-stack
+                style={{ "--i": i, "--tone": group.color, "--ink": group.ink }}
+              >
+                <div className="grupo-card-inner">
+                  <div className="grupo-age">
+                    <span className="grupo-age-num">{group.age}</span>
+                    <span className="grupo-age-label">años</span>
+                  </div>
 
-            <article className="grupo-card">
-              <h3>Hormiguitas</h3>
-              <p className="edad">Edad 4 a 5 años</p>
-              <p className="descripcion">
-                Jóvenes científicos naturales que exploran mediante proyectos.
-              </p>
-              <ul className="actividades">
-                <li>Trabajo en equipo</li>
-                <li>Resolución de desafíos</li>
-                <li>Cultivo de huertas</li>
-                <li>Pensamiento crítico</li>
-              </ul>
-            </article>
+                  <div className="grupo-info">
+                    <p className="grupo-num">Grupo {i + 1}</p>
+                    <h3>{group.name}</h3>
+                    <p className="grupo-desc">{group.description}</p>
+                    <ul className="grupo-tags">
+                      {group.activities.map((activity) => (
+                        <li key={activity}>{activity}</li>
+                      ))}
+                    </ul>
+                  </div>
 
-            <article className="grupo-card">
-              <h3>Colonizadores</h3>
-              <p className="edad">Edad 5 a 6 años</p>
-              <p className="descripcion">
-                Futuros líderes preparados para conquistar nuevos retos.
-              </p>
-              <ul className="actividades">
-                <li>Conceptos académicos</li>
-                <li>Proyectos innovadores</li>
-                <li>Tecnología responsable</li>
-                <li>Desarrollo de resiliencia</li>
-              </ul>
-            </article>
+                  <span className="grupo-icon" aria-hidden="true">{group.icon}</span>
+                </div>
+              </article>
+            ))}
           </div>
         </div>
       </section>
