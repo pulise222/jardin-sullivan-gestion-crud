@@ -50,7 +50,7 @@ const MenuAdmin = ({ setView, currentView, onNavigate }) => {
     <aside className="pn-sidebar" aria-label="Menú del panel de administración">
       <div>
         <span className="pn-brand">
-          <Logo />
+          <Logo tone="light" />
         </span>
       </div>
 
@@ -65,7 +65,7 @@ const MenuAdmin = ({ setView, currentView, onNavigate }) => {
                 aria-current={currentView === section.id ? 'page' : undefined}
                 onClick={() => choose(section.id)}
               >
-                <i className={`fas ${section.icon}`} aria-hidden="true"></i>
+                <span className="pn-nav-ico" aria-hidden="true"><i className={`fas ${section.icon}`}></i></span>
                 {section.label}
               </button>
             </li>

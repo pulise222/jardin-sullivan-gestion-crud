@@ -150,13 +150,13 @@ const CreateStudentForm = ({ onClose }) => {
           </div>
 
           <div className="pn-field">
-            <label htmlFor="telefono">Teléfono *</label>
+            <label htmlFor="telefono">Teléfono del acudiente *</label>
             <input type="tel" inputMode="numeric" autoComplete="off" {...field('telefono')} />
             <Err name="telefono" />
           </div>
 
           <div className="pn-field">
-            <label htmlFor="correo_electronico">Correo electrónico *</label>
+            <label htmlFor="correo_electronico">Correo del acudiente *</label>
             <input type="email" autoComplete="off" {...field('correo_electronico')} />
             <Err name="correo_electronico" />
           </div>

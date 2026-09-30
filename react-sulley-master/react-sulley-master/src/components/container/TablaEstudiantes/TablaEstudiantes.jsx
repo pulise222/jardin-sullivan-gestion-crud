@@ -3,10 +3,10 @@ import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { setEstudiantes } from '../../../features/students/studentSlice';
 import { useDeleteStudentMutation, useGetStudentsQuery } from '../../../features/students/studentApi';
+import toast from 'react-hot-toast';
+import useConfirm from '../../../hooks/useConfirm';
 import AcudienteCell from '../Guardians/AcudienteCell';
-// "TablaEstudiantes.css" se conserva porque la tabla de Personas todavía usa algunas de sus clases;
-// los estilos de esta tabla ahora están en src/styles/panel.css (clases "pn-…").
-import './TablaEstudiantes.css';
+// Los estilos de esta tabla están en src/styles/panel.css (clases "pn-…")
 
 // "2019-05-14" → "14/05/2019". Se parte el texto a mano para evitar que la zona horaria cambie el día.
 const formatDate = (iso) => {
@@ -21,6 +21,7 @@ const TablaEstudiantes = ({ handleEdit }) => {
   const estudiantesFiltrados = useSelector((s) => s.student.estudiantesFiltrados);
   const { data, isSuccess, isLoading, isError } = useGetStudentsQuery();
   const [deleteStudent] = useDeleteStudentMutation();
+  const [confirm, confirmDialog] = useConfirm(); // ventana de confirmación con el diseño del panel
 
   useEffect(() => {
     if (isSuccess) {
@@ -48,10 +49,21 @@ const TablaEstudiantes = ({ handleEdit }) => {
     );
   }
 
-  // Antes se borraba al primer clic. Ahora pedimos confirmación (eliminar no se puede deshacer).
-  const handleDelete = (est) => {
-    if (window.confirm(`¿Eliminar a ${est.nombre} ${est.apellido}? Esta acción no se puede deshacer.`)) {
-      deleteStudent(est.id);
+  // Eliminar pide confirmación (no se puede deshacer) y avisa cómo terminó
+  const handleDelete = async (est) => {
+    const ok = await confirm({
+      title: `¿Eliminar a ${est.nombre} ${est.apellido}?`,
+      message: 'Se borrará su ficha del sistema. Esta acción no se puede deshacer.',
+      confirmLabel: 'Eliminar',
+      danger: true,
+    });
+    if (!ok) return;
+    try {
+      await deleteStudent(est.id).unwrap();
+      toast.success('Estudiante eliminado');
+    } catch (e) {
+      console.error(e);
+      toast.error('No se pudo eliminar el estudiante');
     }
   };
 
@@ -68,6 +80,7 @@ const TablaEstudiantes = ({ handleEdit }) => {
   }
 
   return (
+    <>
     <div className="pn-card">
       <div className="pn-table-wrap">
         <table className="pn-table">
@@ -91,16 +104,18 @@ const TablaEstudiantes = ({ handleEdit }) => {
                     <span className={`pn-avatar t${(est.nombre || '?').charCodeAt(0) % 4}`} aria-hidden="true">{(est.nombre || '?').charAt(0)}</span>
                     <div>
                       <strong>{est.nombre} {est.apellido}</strong>
-                      <small>{est.correo_electronico || 'Sin correo'}</small>
+                      <small title="Correo del acudiente">
+                        <i className="fas fa-envelope" aria-hidden="true"></i> {est.correo_electronico || 'Sin correo'}
+                      </small>
                     </div>
                   </div>
                 </td>
                 <td>
-                  <span className="pn-chip is-indigo">{est.tipo_documento || '—'}</span>{' '}
+                  <span className="pn-chip is-petrol">{est.tipo_documento || '—'}</span>{' '}
                   <span className="pn-muted">{est.numero_documento || ''}</span>
                 </td>
                 <td className="pn-muted">{formatDate(est.fecha_nacimiento)}</td>
-                <td className="pn-muted">{est.direccion || '—'}</td>
+                <td className="pn-muted pn-clip" title={est.direccion || ''}>{est.direccion || '—'}</td>
                 <td>
                   {est.curso ? (
                     <span className="pn-chip is-teal">{est.curso}</span>
@@ -139,6 +154,8 @@ const TablaEstudiantes = ({ handleEdit }) => {
         </table>
       </div>
     </div>
+    {confirmDialog}
+    </>
   );
 };
 

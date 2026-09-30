@@ -1,6 +1,7 @@
 // src/components/views/Admin/Admin.jsx
 import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
+import { Toaster } from 'react-hot-toast';
 
 import MenuAdmin from '../../container/Menu/MenuAdmin/MenuAdmin';
 
@@ -81,7 +82,7 @@ const Admin = () => {
                     
                     {/* Formulario para crear Estudiante */}
                     <Modal isOpen={showModalToCreate} onClose={() => setShowModalToCreate(false)}>
-                      <CreateStudentForm onClose={()=>setShowModalToCreate(false)}/>;
+                      <CreateStudentForm onClose={()=>setShowModalToCreate(false)}/>
                     </Modal>
 
                     {/* Formulario para Editar Estudiante */}
@@ -96,7 +97,7 @@ const Admin = () => {
         return (
         <>
           <PersonToolBar onAddClick={handleAdd}></PersonToolBar>
-          <TablaPersonas handleEdit={handleEditPerson}/>;
+          <TablaPersonas handleEdit={handleEditPerson}/>
           
           <Modal isOpen={showModalToCreate} onClose={() => setShowModalToCreate(false)}>
             <CreatePerson onClose={()=>setShowModalToCreate(false)}/>
@@ -111,7 +112,7 @@ const Admin = () => {
       case 'materias':
         return (
           <>
-            <MateriasManager teriasManager></MateriasManager>
+            <MateriasManager />
           </>)
       case 'asignaciones':
           return(
@@ -139,6 +140,17 @@ const Admin = () => {
       <MenuAdmin setView={setView} currentView={view} onNavigate={() => setMenuOpen(false)} />
       {/* Fondo oscuro detrás del menú en celular: al tocarlo se cierra */}
       <div className="pn-backdrop" onClick={() => setMenuOpen(false)} aria-hidden="true" />
+
+      {/* Avisos emergentes (éxito / error) de todo el panel */}
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 3500,
+          style: { fontFamily: 'inherit', fontSize: '1.4rem', fontWeight: 600, borderRadius: '1.2rem', padding: '1.2rem 1.6rem', color: '#10323b' },
+          success: { iconTheme: { primary: '#2ec4b6', secondary: '#fff' } },
+          error: { iconTheme: { primary: '#ff7a1a', secondary: '#fff' } },
+        }}
+      />
 
       <main className="pn-main">
         <header className="pn-header">
