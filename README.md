@@ -102,8 +102,7 @@ y trimestre, el cálculo del boletín, los permisos del registro de usuarios y e
 - La clave secreta y el modo `DEBUG` se leen de variables de entorno (ver `.env.example`); Django se niega a
   arrancar en producción con la clave del repositorio.
 
-## Créditos
+## Autor
 
-Proyecto desarrollado en equipo durante la formación tecnológica en el **SENA**. Rediseño de la interfaz,
-evaluación cualitativa, boletín por trimestre, pruebas y demo: **Juan Sebastián Pulido Bojaca**.
-<!-- Agrega aquí los nombres de tus compañeros de equipo, por ejemplo: "Base del proyecto: Nombre1, Nombre2." -->
+Proyecto de portafolio desarrollado por **Juan Sebastián Pulido Bojaca** durante su formación tecnológica en el **SENA**:
+interfaz y sistema de diseño, evaluación cualitativa, boletín por trimestre, seguridad, pruebas y demo.
