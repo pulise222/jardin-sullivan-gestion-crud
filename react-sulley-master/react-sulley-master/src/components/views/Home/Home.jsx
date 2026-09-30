@@ -1,5 +1,7 @@
 //src/components/views/Home/Home.jsx
 import { useEffect, useState, useRef, useMemo } from "react";
+// Link navega entre páginas de React SIN recargar el navegador (a diferencia de <a href>)
+import { Link } from "react-router-dom";
 import "./Home.css";
 import logo from "../../../assets/logo.png";
 import pelados from "../../../assets/pelados.png";
@@ -7,12 +9,21 @@ import pelados2 from "../../../assets/pelados2.png";
 import evento1 from '../../../assets/evento01.jpeg'
 
 /*
-  HERO CONTENT: aquí puedes editar fácilmente el texto, enlaces
-  y la imagen del 'hero' (landing). Mantén las propiedades y
-  reemplaza los valores por lo que quieras mostrar.
+  ENLACES DEL MENÚ: una sola lista que usamos para dibujar el menú Y para
+  saber en qué sección estás. `id` debe coincidir con el id de cada <section>.
+*/
+const NAV_LINKS = [
+  { id: "inicio", label: "Inicio" },
+  { id: "eventos", label: "Eventos" },
+  { id: "Nosotros", label: "Nosotros" },
+  { id: "programas", label: "Programas" },
+  { id: "contacto", label: "Contacto" },
+];
 
-  Objetivo: que entiendas el código y puedas cambiar el contenido
-  sin tocar la estructura JSX.
+/*
+  HERO CONTENT: aquí editas fácilmente los textos, enlaces e imagen del
+  'hero' (la primera pantalla). El JSX de más abajo solo "lee" estos datos,
+  así cambias el contenido sin tocar la estructura.
 */
 const HERO = {
   badgeText: 'Jardín Infantil • Desde 1 año',
@@ -22,16 +33,12 @@ const HERO = {
     'Un espacio donde la educación y el corazón se unen. Acompañamos a cada niño en su desarrollo único a través del juego, la exploración y el respeto.',
   ctaPrimary: { href: '#contacto', text: 'Conocer más' },
   ctaSecondary: { href: '#programas', text: 'Ver programas' },
-  // Cambia la imagen por la ruta/import que prefieras
   image: pelados,
-  // Contenido de la etiqueta flotante sobre la imagen
-  float: {
-    icon: '🌱',
-    title: 'Aprendizaje activo',
-    subtitle: 'Modelo pedagógico lúdico',
-  },
-  // controla si se muestra la tarjeta flotante sobre la imagen
-  showFloat: false,
+  // Etiquetas flotantes sobre la imagen
+  chips: [
+    { icon: '🌱', title: 'Aprendizaje activo', subtitle: 'Modelo pedagógico lúdico' },
+    { icon: '💛', title: 'Atención personalizada', subtitle: 'Cada niño, a su ritmo' },
+  ],
 }
 const Home = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -41,6 +48,8 @@ const Home = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [currentPage, setCurrentPage] = useState(0);
   const scrollerRef = useRef(null);
+  const [activeId, setActiveId] = useState("inicio");
+  const heroRef = useRef(null);
 
   
 
@@ -161,149 +170,174 @@ const Home = () => {
     };
   }, []);
 
-  // cerrar el menú al cambiar de tamaño hacia desktop
+  // Cerrar el menú móvil: al ensanchar la pantalla o al pulsar Escape (accesibilidad)
   useEffect(() => {
     const onResize = () => {
-      if (window.innerWidth > 768) setMenuOpen(false);
+      if (window.innerWidth >= 900) setMenuOpen(false);
+    };
+    const onKey = (e) => {
+      if (e.key === "Escape") setMenuOpen(false);
     };
     window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("keydown", onKey);
+    };
   }, []);
 
-  // detectar el scroll para aplicar sombras/comprension
+  // Scroll: (1) cambia el estilo del nav y (2) mueve el fondo/imagen del hero (parallax).
+  // Usamos requestAnimationFrame para actualizar como máximo 1 vez por fotograma.
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
-    onScroll();
+    let ticking = false;
+    const update = () => {
+      const y = window.scrollY;
+      setScrolled(y > 24);
+      // Guardamos el scroll en una variable CSS (--py); el CSS decide cuánto mover cada capa
+      heroRef.current?.style.setProperty("--py", Math.min(y, 900));
+      ticking = false;
+    };
+    const onScroll = () => {
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(update);
+      }
+    };
+    update();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // "Scrollspy": marca en el menú la sección que está cruzando el centro de la pantalla
+  useEffect(() => {
+    const sections = NAV_LINKS
+      .map((l) => document.getElementById(l.id))
+      .filter(Boolean);
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) setActiveId(entry.target.id);
+        });
+      },
+      { rootMargin: "-45% 0px -50% 0px" }
+    );
+    sections.forEach((s) => io.observe(s));
+    return () => io.disconnect();
+  }, []);
+
   return (
     <div className="home">
-      {/* NAV */}
+      {/* ============ NAV: barra flotante tipo "píldora" ============ */}
       <header className={`nav ${scrolled ? "scrolled" : ""}`}>
-        <div className="wrap nav-inner">
-          <a className="brand" href="#inicio" aria-label="Inicio">
-            <img src={logo} alt="Jardín Sullivan Logo" />
+        <div className="nav-shell">
+          <a className="brand" href="#inicio" aria-label="Jardín Sullivan, ir al inicio">
+            <img src={logo} alt="Jardín Sullivan" />
           </a>
 
-          {/* BOTÓN HAMBURGUESA - Muestra ≡ o × según si el menú está abierto */}
+          {/* Botón hamburguesa (solo móvil): muestra ≡ o × según el estado del menú */}
           <button
-            className={`hamburger ${menuOpen ? 'is-open' : ''}`}
+            className="hamburger"
             type="button"
             aria-label={menuOpen ? 'Cerrar menú' : 'Abrir menú'}
             aria-controls="mainmenu"
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen((o) => !o)}
           >
-            <svg
-              width="22"
-              height="22"
-              viewBox="0 0 24 24"
-              fill="none"
-              aria-hidden="true"
-              style={{ transition: 'transform 0.25s ease' }}
-            >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               {menuOpen ? (
-                /* × cerrar */
-                <path
-                  d="M6 6l12 12M18 6L6 18"
-                  stroke="currentColor"
-                  strokeWidth="2.2"
-                  strokeLinecap="round"
-                />
+                <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
               ) : (
-                /* ≡ hamburguesa */
-                <path
-                  d="M3 6h18M3 12h18M3 18h18"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
+                <path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
               )}
             </svg>
           </button>
 
-          {/* LINKS */}
+          {/* Enlaces: se generan desde NAV_LINKS. `--i` sirve para escalonar la animación */}
           <nav
             id="mainmenu"
+            aria-label="Principal"
             className={`nav-links ${menuOpen ? "open" : ""}`}
             onClick={(e) => {
-              // JS puro: si el click ocurre en un <a> (o dentro de él), cierra el menú
+              // Si el clic fue sobre un enlace, cerramos el menú móvil
               if (e.target instanceof Element && e.target.closest("a")) {
                 setMenuOpen(false);
               }
             }}
           >
-            <a href="#inicio">Inicio</a>
-            <a href="#eventos">Eventos</a>
-            <a href="#Nosotros">Nosotros</a>
-            <a href="#programas">Programas</a>
-            <a href="#contacto">Contacto</a>
-            <a className="btn-login" href="/login">
+            {NAV_LINKS.map((link, i) => (
+              <a
+                key={link.id}
+                href={`#${link.id}`}
+                style={{ "--i": i }}
+                className={activeId === link.id ? "is-active" : undefined}
+                aria-current={activeId === link.id ? "location" : undefined}
+              >
+                {link.label}
+              </a>
+            ))}
+            <Link className="btn-login" to="/login" style={{ "--i": NAV_LINKS.length }}>
               <span>Inicia Sesión</span>
-              <i className="fas fa-arrow-right btn-login-icon"></i>
-            </a>
+              <span className="btn-login-icon" aria-hidden="true">
+                <i className="fas fa-arrow-right"></i>
+              </span>
+            </Link>
           </nav>
         </div>
       </header>
 
-      {/* SECCIÓN HERO - BIENVENIDA */}
-      <section id="inicio" className="hero-section">
+      {/* ============ HERO: primera pantalla ============ */}
+      <section id="inicio" className="hero-section" ref={heroRef}>
         <div className="wrap hero-inner">
 
-          {/* Texto izquierdo */}
+          {/* Columna de texto: cada bloque entra con un pequeño retraso (--d) */}
           <div className="hero-text">
-            {/* Badge tipo pill */}
-            <div className="hero-badge">
-              <span className="hero-badge-dot"></span>
-              <span>Jardín Infantil • Desde 1 año</span>
+            <div className="hero-badge reveal" style={{ "--d": ".05s" }}>
+              <span className="hero-badge-dot" aria-hidden="true"></span>
+              <span>{HERO.badgeText}</span>
             </div>
 
-            {/* Título principal */}
-            <h1 className="hero-title">
-              Bienvenidos al
-              <span className="hero-title-highlight"> Jardín Sullivan</span>
+            <h1 className="hero-title reveal" style={{ "--d": ".15s" }}>
+              {HERO.titlePrefix}{" "}
+              <span className="hero-title-highlight">{HERO.titleHighlight}</span>
             </h1>
 
-            {/* Lead */}
-            <p className="hero-lead">
-              Un espacio donde la educación y el corazón se unen. Acompañamos
-              a cada niño en su desarrollo único a través del juego, la
-              exploración y el respeto.
-            </p>
+            <p className="hero-lead reveal" style={{ "--d": ".28s" }}>{HERO.lead}</p>
 
-            {/* CTAs */}
-            <div className="hero-actions">
-              <a href="#contacto" className="hero-cta-primary">Conocer más</a>
-              <a href="#programas" className="hero-cta-secondary">
-                Ver programas
-                <i className="fas fa-chevron-right" style={{fontSize:'1.1rem'}}></i>
+            <div className="hero-actions reveal" style={{ "--d": ".4s" }}>
+              <a href={HERO.ctaPrimary.href} className="hero-cta-primary">
+                {HERO.ctaPrimary.text}
+                <i className="fas fa-arrow-right" aria-hidden="true"></i>
+              </a>
+              <a href={HERO.ctaSecondary.href} className="hero-cta-secondary">
+                {HERO.ctaSecondary.text}
               </a>
             </div>
           </div>
 
-          {/* Imagen derecha */}
+          {/* Columna de imagen con etiquetas flotantes */}
           <div className="hero-media">
-            <div className="hero-img-frame">
-              <img src={HERO.image} alt="Niños jugando en el Jardín Sullivan" />
+            <div className="hero-media-inner reveal" style={{ "--d": ".2s" }}>
+              <div className="hero-img-frame">
+                <img src={HERO.image} alt="Niños jugando en el Jardín Sullivan" />
+              </div>
 
-              {/* Etiqueta flotante (ahora renderizada condicionalmente). 
-                  Para mostrarla de nuevo cambia `HERO.showFloat` a true
-                  en la constante `HERO` al inicio de este archivo. */}
-              {HERO.showFloat && (
-                <div className="hero-float-badge">
-                  <span className="hero-float-icon">{HERO.float.icon}</span>
+              {HERO.chips.map((chip, i) => (
+                <div key={chip.title} className={`hero-chip hero-chip-${i + 1}`}>
+                  <span className="hero-chip-icon" aria-hidden="true">{chip.icon}</span>
                   <div>
-                    <strong>{HERO.float.title}</strong>
-                    <span>{HERO.float.subtitle}</span>
+                    <strong>{chip.title}</strong>
+                    <span>{chip.subtitle}</span>
                   </div>
                 </div>
-              )}
+              ))}
             </div>
           </div>
-
         </div>
+
+        {/* Indicador para bajar (solo escritorio) */}
+        <a href="#eventos" className="hero-scroll" aria-label="Bajar a la sección Eventos">
+          <span></span>
+        </a>
       </section>
 
       {/*Eventos*/}
