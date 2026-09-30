@@ -163,7 +163,9 @@ const GROUPS = [
 ];
 
 // Palabras de la banda que se desliza (todas salen de los textos del jardín)
-const MARQUEE_WORDS = ["Juego", "Curiosidad", "Creatividad", "Respeto", "Exploración", "Empatía"];
+// Cada fila repite solo 3 palabras: así, mirando cualquier tramo de la fila, siempre se leen las 3.
+const MARQUEE_ROW_1 = ["Juego", "Curiosidad", "Creatividad"];
+const MARQUEE_ROW_2 = ["Respeto", "Exploración", "Empatía"];
 const Home = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -672,12 +674,13 @@ const Home = () => {
           ========================================================== */}
       <div className="marquee" aria-hidden="true">
         <div className="marquee-row" data-slide-x="0.35">
-          {[...MARQUEE_WORDS, ...MARQUEE_WORDS].map((word, i) => (
+          {/* Array(4).fill(...).flat(): repite las 3 palabras 4 veces para llenar el ancho */}
+          {Array(4).fill(MARQUEE_ROW_1).flat().map((word, i) => (
             <span key={i}>{word}</span>
           ))}
         </div>
-        <div className="marquee-row marquee-row-outline" data-slide-x="-0.35">
-          {[...MARQUEE_WORDS].reverse().concat([...MARQUEE_WORDS].reverse()).map((word, i) => (
+        <div className="marquee-row marquee-row-warm" data-slide-x="-0.35">
+          {Array(4).fill(MARQUEE_ROW_2).flat().map((word, i) => (
             <span key={i}>{word}</span>
           ))}
         </div>
@@ -711,9 +714,19 @@ const Home = () => {
                 style={{ "--i": i, "--tone": group.color, "--ink": group.ink }}
               >
                 <div className="grupo-card-inner">
+                  {/* La edad se parte en dos números ("1–3" → "1" y "3") para separarlos bien.
+                      La parte visual se oculta a los lectores de pantalla (aria-hidden) y
+                      se les da un texto claro con .sr-only: "De 1 a 3 años". */}
                   <div className="grupo-age">
-                    <span className="grupo-age-num">{group.age}</span>
-                    <span className="grupo-age-label">años</span>
+                    <span className="sr-only">
+                      De {group.age.split("–")[0]} a {group.age.split("–")[1]} años
+                    </span>
+                    <span className="grupo-age-num" aria-hidden="true">
+                      {group.age.split("–")[0]}
+                      <span className="grupo-age-dash">–</span>
+                      {group.age.split("–")[1]}
+                    </span>
+                    <span className="grupo-age-label" aria-hidden="true">años</span>
                   </div>
 
                   <div className="grupo-info">

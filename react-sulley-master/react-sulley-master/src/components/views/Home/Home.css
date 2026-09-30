@@ -1249,28 +1249,37 @@ html:has(.home) {
 .marquee-row span {
   flex: none;
   white-space: nowrap;
-  padding-inline: 2.4rem;
+  padding-inline: 1.6rem;
   color: var(--c-prim);
   font-family: var(--font-display);
-  font-size: clamp(5rem, 9vw, 11rem);
+  /* más pequeño que antes para que quepan ~3 palabras y todas se lean */
+  font-size: clamp(3.6rem, 4.8vw, 8rem);
   font-weight: 800;
-  letter-spacing: -0.04em;
-  line-height: 1.05;
+  letter-spacing: -0.035em;
+  line-height: 1.1;
 }
 
 /* Estrellita separadora entre palabras */
 .marquee-row span::after {
   content: "\2726";
-  margin-left: 4.8rem;
+  margin-left: 3.2rem;
   color: var(--c-accent);
   font-size: 0.5em;
   vertical-align: middle;
 }
 
-/* La segunda fila es solo contorno (sin relleno) */
-.marquee-row-outline span {
-  color: transparent;
-  -webkit-text-stroke: 2px var(--c-prim);
+/* La segunda fila usa el degradado cálido de la marca en vez de un contorno:
+   el contorno (-webkit-text-stroke) dejaba ver los trazos internos de las letras */
+.marquee-row-warm span {
+  background: linear-gradient(100deg, var(--c-orange), var(--c-red));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* la estrellita no debe heredar el texto transparente */
+.marquee-row-warm span::after {
+  -webkit-text-fill-color: var(--c-accent);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1710,11 +1719,23 @@ html:has(.home) {
 }
 
 .grupo-age-num {
+  display: flex;
+  align-items: center;
+  /* espacio entre el primer número, el guion y el segundo */
+  gap: 0.1em;
   font-family: var(--font-display);
   font-size: clamp(8rem, 13vw, 15rem);
   font-weight: 800;
-  line-height: 0.85;
-  letter-spacing: -0.06em;
+  line-height: 0.9;
+  letter-spacing: -0.03em;
+}
+
+/* Guion más pequeño y fino, centrado entre los dos números */
+.grupo-age-dash {
+  font-size: 0.4em;
+  font-weight: 700;
+  opacity: 0.7;
+  letter-spacing: 0;
 }
 
 .grupo-age-label {
