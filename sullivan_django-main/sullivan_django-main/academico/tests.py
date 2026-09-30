@@ -173,3 +173,27 @@ class RegistroDeUsuariosTests(BaseDatos):
     def test_administrador_si_puede(self):
         r = self.api(self.admin).post('/usuarios/register/', self.datos, format='json')
         self.assertEqual(r.status_code, 201)
+
+
+class CargarDatosDemoTests(TestCase):
+    """El comando que deja el proyecto listo para recorrer apenas se clona el repositorio."""
+
+    def test_carga_las_cuentas_y_no_duplica(self):
+        from django.core.management import call_command
+        from io import StringIO
+
+        call_command('cargar_datos_demo', stdout=StringIO())
+        usuarios = set(Usuario.objects.values_list('username', flat=True))
+        self.assertTrue({'admin', 'profesor', 'acudiente'} <= usuarios)
+        self.assertTrue(Usuario.objects.get(username='profesor').check_password('Demo2026*'))
+
+        totales = (Estudiante.objects.count(), Actividad.objects.count(), ActividadEstudiante.objects.count())
+        call_command('cargar_datos_demo', stdout=StringIO())      # segunda vez: no debe duplicar nada
+        self.assertEqual(totales, (Estudiante.objects.count(), Actividad.objects.count(), ActividadEstudiante.objects.count()))
+
+        # El boletín de un hijo del acudiente se puede calcular con esos datos
+        from personas.models import PersonaEstudiante
+        hijo = PersonaEstudiante.objects.filter(persona__usuario__username='acudiente').first().estudiante
+        periodo = Periodo.objects.get(anio=date.today().year, numero=1)
+        boletin = calcular_boletin_estudiante_periodo(hijo.curso_id, periodo, hijo.id)
+        self.assertTrue(boletin['materias'])
