@@ -1,5 +1,6 @@
 import React from 'react'
-import { Route, Routes} from 'react-router-dom'
+import { useEffect } from 'react'
+import { Route, Routes, Navigate, useLocation } from 'react-router-dom'
 import TablaEstudiantes from '../components/container/TablaEstudiantes/TablaEstudiantes'
 import Admin from '../components/views/Admin/Admin'
 import MenuAdmin from '../components/container/Menu/MenuAdmin/MenuAdmin'
@@ -15,9 +16,26 @@ import ImportEstudiantes from '../components/views/Admin/ImportEstudiantes'
 import Acudiente from '../components/views/Acudiente/Acudiente'
 import EstudianteDetalle from '../components/views/Acudiente/EstudianteDetalle'
 
+/*
+  ScrollToTop: cada vez que cambia la RUTA (por ejemplo de "/" a "/matricula") vuelve arriba.
+  React Router navega sin recargar la página, y por eso el navegador conserva el scroll de la
+  página anterior; sin esto, una página nueva se abría a mitad de camino.
+  No hace nada si solo cambia el "#ancla" (los enlaces del menú como #eventos), que sí deben
+  bajar a su sección.
+*/
+const ScrollToTop = () => {
+  const { pathname } = useLocation()
+  useEffect(() => {
+    // behavior: 'instant' evita la animación suave que la landing activa con scroll-behavior
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+  }, [pathname])
+  return null
+}
+
 const index = () => {
   return (
     <>
+      <ScrollToTop />
       <Routes>
           
         <Route path="/" element={<Home />} />
@@ -27,14 +45,19 @@ const index = () => {
         
         <Route path='/login' element={<Login></Login>}></Route>
         
-        <Route path='/estudiantes' element={<TablaEstudiantes/>} />
+        {/* La tabla suelta ya no existe: los estudiantes se gestionan dentro del panel de administración */}
+        <Route path='/estudiantes' element={<Navigate to="/admin" replace />} />
         
         <Route path='/admin' element={
           <RequireAuth>
             <Admin/>
           </RequireAuth>
         } />
-        <Route path="/admin/importar-estudiantes" element={<ImportEstudiantes/>} />
+        <Route path="/admin/importar-estudiantes" element={
+          <RequireAuth>
+            <ImportEstudiantes/>
+          </RequireAuth>
+        } />
 
         <Route
           path="/acudiente/*" element={
