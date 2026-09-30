@@ -6,10 +6,13 @@ import "./Home.css";
 // Hook que anima cosas según el scroll y componente que divide títulos en palabras
 import useScrollEffects from "../../../hooks/useScrollEffects";
 import { Words } from "../../common/ScrollText";
-import logo from "../../../assets/logo.png";
+import Logo from "../../common/Logo";
+import { GROUPS } from "../../../data/groups";
+import useFreeScroll from "../../../hooks/useFreeScroll";
 import pelados from "../../../assets/pelados.png";
 import pelados2 from "../../../assets/pelados2.png";
 import jugando from "../../../assets/niños-jugando.png";
+import baile from "../../../assets/baile.png";
 import evento1 from '../../../assets/evento01.jpeg'
 
 /*
@@ -119,48 +122,6 @@ const PILLARS = [
   },
 ];
 
-/*
-  GRUPOS por edad. `color` es el fondo de la tarjeta y `ink` el color del texto
-  encima (blanco sobre el rojo para que se lea bien).
-*/
-const GROUPS = [
-  {
-    name: "Oruguitas",
-    age: "1–3",
-    description: "Pequeños exploradores que describen el mundo a través de los sentidos.",
-    activities: ["Juegos sensoriales", "Rondas infantiles", "Manipulación de materiales", "Desarrollo de autonomía"],
-    icon: "🐛",
-    color: "#FEBF22",
-    ink: "#1B3158",
-  },
-  {
-    name: "Capullitos",
-    age: "3–4",
-    description: "Potentes comunicadores que expanden su mundo a través del lenguaje.",
-    activities: ["Dramatizaciones", "Actividades artísticas", "Juegos colaborativos", "Desarrollo de independencia"],
-    icon: "🦋",
-    color: "#28A8E3",
-    ink: "#0F2240",
-  },
-  {
-    name: "Hormiguitas",
-    age: "4–5",
-    description: "Jóvenes científicos naturales que exploran mediante proyectos.",
-    activities: ["Trabajo en equipo", "Resolución de desafíos", "Cultivo de huertas", "Pensamiento crítico"],
-    icon: "🐜",
-    color: "#93C524",
-    ink: "#1B3158",
-  },
-  {
-    name: "Colonizadores",
-    age: "5–6",
-    description: "Futuros líderes preparados para conquistar nuevos retos.",
-    activities: ["Conceptos académicos", "Proyectos innovadores", "Tecnología responsable", "Desarrollo de resiliencia"],
-    icon: "🚀",
-    color: "#F25141",
-    ink: "#FFFFFF",
-  },
-];
 
 // Palabras de la banda que se desliza (todas salen de los textos del jardín)
 // Cada fila repite solo 3 palabras: así, mirando cualquier tramo de la fila, siempre se leen las 3.
@@ -293,24 +254,8 @@ const Home = () => {
     return () => io.disconnect();
   }, []);
 
-  useEffect(() => {
-    const root = document.getElementById("root");
-    if (!root) return;
-    // index.css le pone al #root overflow:hidden y width:100vw (pensado para los paneles).
-    // En la landing eso rompe dos cosas: (1) position:sticky no funciona dentro de un
-    // contenedor con overflow, y (2) 100vw + la barra de scroll crea una barra horizontal.
-    // Solo mientras la landing está abierta lo corregimos, y al salir lo devolvemos.
-    const prevOverflow = root.style.overflow;
-    const prevWidth = root.style.width;
-    root.style.overflow = "visible";
-    root.style.width = "100%";
-    root.classList.add("root-scroll-enabled");
-    return () => {
-      root.style.overflow = prevOverflow;
-      root.style.width = prevWidth;
-      root.classList.remove("root-scroll-enabled");
-    };
-  }, []);
+  // Scroll normal en la landing (corrige overflow/ancho del #root; ver hooks/useFreeScroll.js)
+  useFreeScroll();
 
   // Cerrar el menú móvil: al ensanchar la pantalla o al pulsar Escape (accesibilidad)
   useEffect(() => {
@@ -376,7 +321,8 @@ const Home = () => {
       <header className={`nav ${scrolled ? "scrolled" : ""}`}>
         <div className="nav-shell">
           <a className="brand" href="#inicio" aria-label="Jardín Sullivan, ir al inicio">
-            <img src={logo} alt="Jardín Sullivan" />
+            {/* Logo reutilizable: sol sonriente + nombre (ver components/common/Logo.jsx) */}
+            <Logo />
           </a>
 
           {/* Botón hamburguesa (solo móvil): muestra ≡ o × según el estado del menú */}
@@ -825,91 +771,199 @@ const Home = () => {
         </div>
       </section>
 
-      {/* BANNER MATRICULACIÓN */}
-      <section className="matricula-banner-horizontal">
-        <div className="wrap banner-inner">
-          <h2>¿DESEAS MATRICULAR EN NUESTRO JARDÍN?</h2>
-          <a href="#contacto" className="matricula-btn-horizontal">
-            MÁS INFORMACIÓN
-          </a>
+      {/* ==========================================================
+          MATRÍCULA: llamada a la acción. El botón lleva a la página /matricula
+          (ruta definida en routes/index.jsx). Usamos <Link> para navegar sin recargar.
+          ========================================================== */}
+      <section className="matricula-section" id="matricula">
+        <div className="wrap">
+          <div className="matricula-panel" data-reveal>
+            <div className="matricula-copy">
+              <span className="matricula-eyebrow">Inscripciones</span>
+              <h2 className="matricula-title" data-split>
+                <Words text="¿Deseas matricular a tu hijo" />
+                <Words text="en nuestro jardín?" className="nos-title-highlight" start={5} />
+              </h2>
+              <p className="matricula-sub">
+                Cuéntanos sobre tu familia y el jardín se pondrá en contacto contigo.
+              </p>
+              <div className="matricula-actions">
+                <Link to="/matricula" className="matricula-btn">
+                  Inscribir ahora
+                  <span className="matricula-btn-icon" aria-hidden="true">
+                    <i className="fas fa-arrow-right"></i>
+                  </span>
+                </Link>
+                <a href="#contacto" className="matricula-link">Ver datos de contacto</a>
+              </div>
+            </div>
+
+            {/* Sol gigante decorativo: gira según cuánto has bajado (--scroll) y se mueve con parallax */}
+            <div className="matricula-art" aria-hidden="true" data-parallax="0.06">
+              <Logo showText={false} />
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* METODOLOGÍA */}
-      <section className="metodologia-section">
+      {/* ==========================================================
+          METODOLOGÍA: el párrafo se "enciende" palabra por palabra al bajar (data-scrub)
+          y un sello circular gira con el scroll.
+          ========================================================== */}
+      <section className="metodologia-section" id="metodologia">
         <div className="wrap metodo-grid">
           <div className="metodo-text">
-            <h2 className="titulo-metodologia">Nuestra Metodología</h2>
-            <p className="texto-metodologia">
-              Nuestro enfoque educativo está basado en el método de aprendizaje
-              activo, donde los niños son los protagonistas de su propio
-              desarrollo. Creemos en la importancia del juego como herramienta
-              fundamental para el aprendizaje, ya que permite desarrollar
-              habilidades sociales, emocionales y cognitivas de manera natural.
+            <span className="nos-eyebrow" data-reveal>Nuestra metodología</span>
+            <h2 className="metodo-title" data-split>
+              <Words text="Aprendizaje" />
+              <Words text="activo" className="nos-title-highlight" start={1} />
+            </h2>
+            <p className="metodo-lead" data-scrub>
+              <Words
+                scrub
+                text="Nuestro enfoque educativo está basado en el método de aprendizaje activo, donde los niños son los protagonistas de su propio desarrollo. Creemos en la importancia del juego como herramienta fundamental para el aprendizaje, ya que permite desarrollar habilidades sociales, emocionales y cognitivas de manera natural."
+              />
             </p>
+            <ul className="metodo-chips">
+              {["Habilidades sociales", "Habilidades emocionales", "Habilidades cognitivas"].map((chip, i) => (
+                <li key={chip} data-reveal style={{ "--d": `${i * 0.1}s`, "--dot": ["#28A8E3", "#F25141", "#93C524"][i] }}>
+                  {chip}
+                </li>
+              ))}
+            </ul>
           </div>
-          <div className="metodo-img">
-            <img src={pelados2} alt="Profesora con niños" />
+
+          <div className="metodo-media" data-reveal="right">
+            <div className="metodo-photo" data-parallax="0.04">
+              <img
+                src={baile}
+                alt="Niños del jardín con trajes típicos colombianos en una actividad"
+                loading="lazy"
+              />
+            </div>
+
+            {/* Sello circular: el texto sigue un círculo (textPath) y gira con el scroll */}
+            <svg className="metodo-badge" viewBox="0 0 200 200" aria-hidden="true">
+              <circle cx="100" cy="100" r="98" fill="#FEBF22" />
+              <defs>
+                <path id="metodoCirculo" d="M100,100 m-70,0 a70,70 0 1,1 140,0 a70,70 0 1,1 -140,0" />
+              </defs>
+              <g className="metodo-badge-ring">
+                <text fill="#1B3158" fontSize="15" fontWeight="800" letterSpacing="1">
+                  {/* textLength estira el texto para que dé justo una vuelta completa */}
+                  <textPath href="#metodoCirculo" textLength="432" lengthAdjust="spacing">
+                    APRENDIZAJE ACTIVO • JUEGO • EXPLORACIÓN •
+                  </textPath>
+                </text>
+              </g>
+              <path d="M100 76 L107 93 L124 100 L107 107 L100 124 L93 107 L76 100 L93 93 Z" fill="#1B3158" />
+            </svg>
           </div>
         </div>
       </section>
 
-      {/* FOOTER */}
-      <footer className="footer-section" id="contacto">
-        <div className="wrap footer-grid">
-          <div className="footer-left">
-            <h3>Contacto</h3>
-            <div className="mb">
-              <p>
-                <strong>Jardín Infantil Sullivan</strong>
+      {/* ==========================================================
+          FOOTER (pie de página). id="contacto": a él apuntan los botones
+          "Conocer más" y "Ver datos de contacto".
+          Estructura: logo + título → datos de contacto y mapa → enlaces → franja final.
+          El nombre gigante del fondo es decorativo y se desliza de lado al bajar.
+          ========================================================== */}
+      <footer className="footer" id="contacto">
+        <div className="footer-panel">
+          <div className="wrap">
+
+            <div className="footer-head">
+              <Logo tone="light" />
+              <h2 className="footer-title" data-split>
+                <Words text="Ven a" />
+                <Words text="conocernos" className="nos-title-highlight" start={2} />
+              </h2>
+              <p className="footer-sub" data-reveal style={{ "--d": ".12s" }}>
+                Un espacio donde la educación y el corazón se unen.
               </p>
-              <p>© 2024. | Políticas de privacidad</p>
-              <p>Dirección: Calle 45 #12-34, Bogotá</p>
             </div>
 
-            <div className="mb">
-              <h3>Horarios de Atención</h3>
-              <p>Lunes a viernes: 7:30 a.m. - 5:00 p.m.</p>
-              <p>Sábados: 8:00 a.m. - 12:00 m.</p>
-            </div>
+            <div className="footer-grid">
+              {/* Datos de contacto: cada fila tiene un ícono de color (--tone) */}
+              <ul className="footer-list">
+                <li data-reveal style={{ "--tone": "#FEBF22" }}>
+                  <span className="footer-ico" aria-hidden="true"><i className="fas fa-location-dot"></i></span>
+                  <div>
+                    <strong>Dirección</strong>
+                    <p>Calle 45 #12-34, Bogotá</p>
+                  </div>
+                </li>
 
-            <div>
-              <h3>Línea Administrativa</h3>
-              <p>Teléfono: (601) 555 1324</p>
-              <p>Celular: 300 455 7890</p>
-              <p>Correos:</p>
-              <br />
-              <ul className="dotless">
-                <li>Coordinación: coordinacion@sullivan.edu.co</li>
-                <li>Psicología: psicologia@sullivan.edu.co</li>
-                <li>Secretaría: secretaria@sullivan.edu.co</li>
+                <li data-reveal style={{ "--tone": "#28A8E3", "--d": ".08s" }}>
+                  <span className="footer-ico" aria-hidden="true"><i className="fas fa-phone"></i></span>
+                  <div>
+                    <strong>Línea administrativa</strong>
+                    {/* href="tel:..." hace que en el celular se pueda llamar con un toque */}
+                    <a href="tel:+576015551324">Teléfono: (601) 555 1324</a>
+                    <a href="tel:+573004557890">Celular: 300 455 7890</a>
+                  </div>
+                </li>
+
+                <li data-reveal style={{ "--tone": "#93C524", "--d": ".16s" }}>
+                  <span className="footer-ico" aria-hidden="true"><i className="fas fa-envelope"></i></span>
+                  <div>
+                    <strong>Correos</strong>
+                    {/* href="mailto:..." abre el programa de correo */}
+                    <a href="mailto:coordinacion@sullivan.edu.co">Coordinación: coordinacion@sullivan.edu.co</a>
+                    <a href="mailto:psicologia@sullivan.edu.co">Psicología: psicologia@sullivan.edu.co</a>
+                    <a href="mailto:secretaria@sullivan.edu.co">Secretaría: secretaria@sullivan.edu.co</a>
+                  </div>
+                </li>
+
+                <li data-reveal style={{ "--tone": "#F25141", "--d": ".24s" }}>
+                  <span className="footer-ico" aria-hidden="true"><i className="fas fa-clock"></i></span>
+                  <div>
+                    <strong>Horarios de atención</strong>
+                    <p>Lunes a viernes: 7:30 a.m. - 5:00 p.m.</p>
+                    <p>Sábados: 8:00 a.m. - 12:00 m.</p>
+                  </div>
+                </li>
               </ul>
-            </div>
-          </div>
 
-          <div className="footer-right">
-            <div className="footer-right">
+              {/* Mapa de Google incrustado (loading="lazy": no se descarga hasta que te acercas) */}
               <div
-                className="map-embed"
+                className="footer-map"
                 role="region"
                 aria-label="Mapa de ubicación Jardín Sullivan"
+                data-reveal="right"
               >
                 <iframe
                   title="Ubicación Jardín Sullivan"
                   loading="lazy"
                   allowFullScreen
                   referrerPolicy="no-referrer-when-downgrade"
-                  src="https://www.google.com/maps?q=Sullivan+Kinder%2C+Carrera+87%2C+Cl.+53+Sur+%2349A%2C+Bogot%C3%A1%2C+Cundinamarca%2C+Colombia&output=embed">
-                  </iframe>
+                  src="https://www.google.com/maps?q=Sullivan+Kinder%2C+Carrera+87%2C+Cl.+53+Sur+%2349A%2C+Bogot%C3%A1%2C+Cundinamarca%2C+Colombia&output=embed"
+                ></iframe>
               </div>
             </div>
-          </div>
-        </div>
 
-        <div className="center mt">
-          <a href="#inicio" className="btn-to-top">
-            ↑ Inicio
-          </a>
+            {/* Enlaces rápidos */}
+            <nav className="footer-nav" aria-label="Enlaces del pie de página">
+              <a href="#inicio">Inicio</a>
+              <a href="#eventos">Eventos</a>
+              <a href="#Nosotros">Nosotros</a>
+              <a href="#programas">Programas</a>
+              <Link to="/matricula">Inscripciones</Link>
+              <Link to="/login">Inicia sesión</Link>
+            </nav>
+
+            {/* Franja final: derechos, privacidad y botón para volver arriba */}
+            <div className="footer-bottom">
+              {/* new Date().getFullYear() pone el año actual solo, sin tener que editarlo cada enero */}
+              <p>© {new Date().getFullYear()} Jardín Infantil Sullivan · <a href="#">Políticas de privacidad</a></p>
+              <a href="#inicio" className="footer-top" aria-label="Volver al inicio de la página">
+                <i className="fas fa-arrow-up" aria-hidden="true"></i>
+              </a>
+            </div>
+          </div>
+
+          {/* Nombre gigante de fondo (decorativo) */}
+          <p className="footer-giant" aria-hidden="true" data-slide-x="0.08">JARDÍN SULLIVAN</p>
         </div>
       </footer>
     </div>

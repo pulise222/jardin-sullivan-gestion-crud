@@ -6,6 +6,7 @@ import MenuAdmin from '../components/container/Menu/MenuAdmin/MenuAdmin'
 import Login from '../components/views/Login/Login'
 import RequireAuth from '../hooks/RequireAuth'
 import Home from "../components/views/Home/Home"
+import Matricula from "../components/views/Matricula/Matricula"
 
 import Profe  from '../components/views/Profe/Profe'
 import ResetPasswordConfirm from '../components/views/Auth/ResetPasswordConfirm'
@@ -20,6 +21,9 @@ const index = () => {
       <Routes>
           
         <Route path="/" element={<Home />} />
+
+        {/* Página pública con el formulario de inscripción */}
+        <Route path="/matricula" element={<Matricula />} />
         
         <Route path='/login' element={<Login></Login>}></Route>
         

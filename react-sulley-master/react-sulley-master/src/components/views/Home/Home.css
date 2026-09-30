@@ -144,19 +144,6 @@ html:has(.home) {
   text-decoration: none;
 }
 
-.brand img {
-  height: 4.6rem;
-  display: block;
-  transition: transform 0.35s var(--ease), height 0.35s var(--ease);
-}
-
-.nav.scrolled .brand img {
-  height: 4rem;
-}
-
-.brand:hover img {
-  transform: rotate(-4deg) scale(1.06);
-}
 
 /* --- Menú móvil: panel desplegable bajo la cápsula --- */
 .nav-links {
@@ -2022,208 +2009,605 @@ html:has(.home) {
   }
 }
 
-/* ====================== BANNER ====================== */
-.matricula-banner-horizontal {
-  background: var(--c-banner);
-  padding-block: 3.2rem;
+/* ====================== MATRÍCULA (llamada a la acción) ====================== */
+.matricula-section {
+  background: var(--c-bg);
+  padding-block: 4rem 6rem;
 }
 
-.banner-inner {
+.matricula-panel {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: grid;
+  gap: 3rem;
+  align-items: center;
+  padding: 5rem 2.6rem;
+  border-radius: 4rem;
+  background: var(--c-prim);
+  color: #fff;
+}
+
+/* Mancha de luz celeste de fondo */
+.matricula-panel::before {
+  content: "";
+  position: absolute;
+  z-index: -2;
+  width: 52rem;
+  height: 52rem;
+  bottom: -26rem;
+  left: -14rem;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(40, 168, 227, 0.3), rgba(40, 168, 227, 0) 65%);
+}
+
+.matricula-copy {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 1.6rem;
+  gap: 2.2rem;
 }
 
-.matricula-banner-horizontal h2 {
-  color: #fff;
-  font-weight: 800;
-  font-size: 2.4rem;
+.matricula-eyebrow {
+  display: inline-flex;
+  padding: 0.6rem 1.4rem;
+  border-radius: 10rem;
+  background: rgba(254, 191, 34, 0.14);
+  border: 1px solid rgba(254, 191, 34, 0.35);
+  color: var(--c-accent);
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.matricula-title {
   margin: 0;
+  color: #fff;
+  font-size: clamp(3.4rem, 5.2vw, 6.2rem);
+  font-weight: 800;
+  line-height: 1.02;
+  letter-spacing: -0.035em;
 }
 
-.matricula-btn-horizontal {
-  background: var(--c-accent-2);
-  color: var(--c-banner);
-  padding: 1.2rem 2.6rem;
-  border-radius: 3rem;
-  font-weight: 800;
-  text-decoration: none;
-  min-height: var(--touch);
+.matricula-sub {
+  margin: 0;
+  max-width: 46rem;
+  color: rgba(255, 246, 231, 0.78);
+  font-size: clamp(1.6rem, 0.9vw + 1.2rem, 1.9rem);
+  line-height: 1.65;
+}
+
+.matricula-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.6rem 2.4rem;
+  margin-top: 0.6rem;
+}
+
+/* Botón amarillo con círculo azul y flecha (mismo lenguaje que el resto de la página) */
+.matricula-btn {
   display: inline-flex;
   align-items: center;
+  gap: 1.4rem;
+  min-height: 5.6rem;
+  padding: 0.8rem 0.8rem 0.8rem 3rem;
+  border-radius: 10rem;
+  background: var(--c-accent);
+  color: var(--c-prim);
+  font-size: 1.7rem;
+  font-weight: 800;
+  text-decoration: none;
+  box-shadow: 0 14px 30px -10px rgba(254, 191, 34, 0.7);
+  transition: transform 0.3s var(--ease), box-shadow 0.3s ease, background 0.2s ease;
+}
+
+.matricula-btn:hover {
+  transform: translateY(-3px);
+  background: #ffc93c;
+  box-shadow: 0 20px 36px -10px rgba(254, 191, 34, 0.85);
+}
+
+.matricula-btn-icon {
+  display: grid;
+  place-items: center;
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  background: var(--c-prim);
+  color: var(--c-accent);
+  font-size: 1.4rem;
+  transition: transform 0.3s var(--ease);
+}
+
+.matricula-btn:hover .matricula-btn-icon {
+  transform: translateX(4px);
+}
+
+.matricula-link {
+  color: #fff;
+  font-size: 1.6rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: rgba(255, 255, 255, 0.4);
+  text-underline-offset: 0.5rem;
+  transition: text-decoration-color 0.2s ease;
+}
+
+.matricula-link:hover {
+  text-decoration-color: var(--c-accent);
+}
+
+.matricula-btn:focus-visible,
+.matricula-link:focus-visible {
+  outline: 0.3rem solid #fff;
+  outline-offset: 0.3rem;
+}
+
+/* Sol decorativo: en celular queda como textura de fondo (tenue); en escritorio, protagonista */
+.matricula-art {
+  position: absolute;
+  z-index: -1;
+  width: 26rem;
+  height: 26rem;
+  top: -7rem;
+  right: -8rem;
+  opacity: 0.2;
+  pointer-events: none;
+}
+
+.matricula-art .sl-logo,
+.matricula-art .sl-logo-sun {
+  width: 100%;
+  height: 100%;
+}
+
+/* El sol da 2 vueltas completas entre arriba y abajo de la página (--scroll va de 0 a 1) */
+.matricula-art .sl-logo-sun {
+  transform: rotate(calc(var(--scroll, 0) * 720deg));
+  transition: none;
+}
+
+@media screen and (min-width: 900px) {
+  .matricula-panel {
+    grid-template-columns: 1.15fr 0.85fr;
+    padding: 7rem 6rem;
+  }
+
+  .matricula-art {
+    position: relative;
+    z-index: 0;
+    top: auto;
+    right: auto;
+    justify-self: end;
+    width: min(100%, 38rem);
+    height: auto;
+    aspect-ratio: 1;
+    margin-right: -6rem;
+    opacity: 1;
+  }
 }
 
 /* ====================== METODOLOGÍA ====================== */
 .metodologia-section {
   background: var(--c-bg);
-  padding-block: 6rem;
+  padding-block: 8rem 10rem;
+  /* La foto espera desplazada a la derecha antes de animarse; "clip" recorta ese
+     sobrante para que no aparezca scroll horizontal (y, a diferencia de "hidden",
+     no crea un contenedor de scroll, así que no afecta a position: sticky) */
+  overflow-x: clip;
 }
 
 .metodo-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  gap: 7rem;
+  align-items: center;
+}
+
+.metodo-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
   gap: 2.4rem;
 }
 
-.titulo-metodologia {
+.metodo-title {
+  margin: 0;
   color: var(--c-prim);
-  font-size: var(--fs-h2);
+  font-size: clamp(3.6rem, 5.4vw, 6.4rem);
   font-weight: 800;
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+}
+
+/* Párrafo grande que se enciende palabra por palabra (lo controla el hook con data-scrub) */
+.metodo-lead {
+  margin: 0;
+  color: var(--c-prim);
+  font-size: clamp(2rem, 1.1vw + 1.5rem, 2.8rem);
+  font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+}
+
+.metodo-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin: 0.6rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.metodo-chips li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.9rem 1.8rem;
+  border-radius: 10rem;
+  background: #fff;
+  border: 1px solid rgba(27, 49, 88, 0.1);
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+/* Puntito de color delante de cada chip (--dot lo define el JSX) */
+.metodo-chips li::before {
+  content: "";
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  background: var(--dot);
+}
+
+/* --- Foto + sello --- */
+.metodo-media {
   position: relative;
-  padding-bottom: 1rem;
-  margin: 0 0 1.2rem;
-}
-
-.titulo-metodologia:after {
-  content: '';
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  width: 8rem;
-  height: .4rem;
-  background: var(--c-accent);
-}
-
-.texto-metodologia {
-  color: #333;
-  font-size: 1.8rem;
-  line-height: 1.8;
-}
-
-.metodo-img img {
+  /* ancho: 100% del espacio disponible, con tope de 520px. min-width: 0 evita que la foto
+     (que es grande) ensanche la columna y provoque scroll horizontal */
   width: 100%;
-  display: block;
-  border-radius: 1rem;
-  box-shadow: 0 1rem 2rem rgba(0, 0, 0, .1);
+  max-width: 52rem;
+  min-width: 0;
+  justify-self: center;
 }
 
-.nos h2,
-.title-center,
-.titulo-metodologia {
-  font-size: clamp(2.4rem, 2rem + 1vw, 3.6rem);
-  /* 24px–36px */
+.metodo-text {
+  min-width: 0;
+}
+
+.metodo-photo {
+  aspect-ratio: 4 / 4.7;
+  overflow: hidden;
+  border-radius: 12rem 4.4rem 4.4rem 4.4rem;
+  box-shadow: 0 40px 80px -30px rgba(27, 49, 88, 0.5);
+}
+
+.metodo-photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 62% 30%;
+  transition: transform 0.9s var(--ease);
+}
+
+.metodo-photo:hover img {
+  transform: scale(1.05);
+}
+
+.metodo-badge {
+  position: absolute;
+  left: 0.6rem;
+  bottom: -3rem;
+  width: 14rem;
+  height: 14rem;
+  filter: drop-shadow(0 18px 24px rgba(27, 49, 88, 0.3));
+}
+
+/* El anillo de texto da 1,5 vueltas durante toda la página */
+.metodo-badge-ring {
+  transform-origin: 100px 100px;
+  transform: rotate(calc(var(--scroll, 0) * 540deg));
+}
+
+@media screen and (min-width: 640px) {
+  .metodo-badge {
+    left: -4rem;
+    width: 16rem;
+    height: 16rem;
+  }
+}
+
+@media screen and (min-width: 1024px) {
+  .metodo-grid {
+    grid-template-columns: 1.05fr 0.95fr;
+    gap: 9rem;
+  }
+
+  .metodo-media {
+    justify-self: end;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .matricula-art .sl-logo-sun,
+  .metodo-badge-ring {
+    transform: none;
+  }
 }
 
 /* ====================== FOOTER ====================== */
-.footer-section {
-  background: var(--c-accent-2);
-  color: #000;
-  padding: 6rem 0 3rem;
+/* Un panel azul redondeado que cierra la página (mismo lenguaje que Eventos y el banner) */
+.footer {
+  background: var(--c-bg);
+  padding: 4rem 1rem 1rem;
 }
 
-.footer-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 2.4rem;
-}
-
-.footer-left h3 {
-  font-size: clamp(2rem, 1.8rem + 0.5vw, 2.4rem);
-  font-weight: 800;
-  color: var(--c-prim);
-  padding-bottom: 1rem;
-  margin: 0 0 1.6rem;
+.footer-panel {
   position: relative;
-}
-
-.footer-left p {
-  font-size: medium;
-}
-
-.footer-left h3:after {
-  content: '';
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  width: 5rem;
-  height: .3rem;
-  background: var(--c-banner);
-}
-
-.footer-left h4 {
-  font-size: clamp(1.6rem, 1.4rem + 0.3vw, 1.8rem);
-  margin: 0 0 .8rem;
-}
-
-.mb {
-  margin-bottom: 1.8rem;
-}
-
-.dotless {
-  list-style: none;
-  padding-left: 0;
-  margin: .8rem 0 0;
-}
-
-.dotless li {
-  font-size: clamp(1.4rem, 1.3rem + 0.3vw, 1.6rem);
-  /* 14px–16px */
-  margin: .6rem 0;
-  padding-left: 1.4rem;
-  position: relative;
-  font-size: 2.0rem;
-}
-
-.dotless li:before {
-  content: '•';
-  color: var(--c-banner);
-  position: absolute;
-  left: 0;
-}
-
-.footer-right {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.footer-right img {
-  max-height: 22rem;
-  border-radius: .8rem;
-  box-shadow: 0 .4rem 1.2rem rgba(0, 0, 0, .1);
-}
-
-.center {
-  text-align: center;
-}
-
-.mt {
-  margin-top: 2.8rem;
-}
-
-.btn-to-top {
+  isolation: isolate;
+  overflow: hidden;
+  padding-top: 7rem;
+  border-radius: 4rem;
   background: var(--c-prim);
   color: #fff;
-  padding: 2rem 2.2rem;
-  font-size: larger;
-  border-radius: 3rem;
-  text-decoration: none;
+}
+
+/* Manchas de luz de la paleta */
+.footer-panel::before,
+.footer-panel::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.footer-panel::before {
+  width: 56rem;
+  height: 56rem;
+  top: -24rem;
+  left: -16rem;
+  background: radial-gradient(circle, rgba(254, 191, 34, 0.26), rgba(254, 191, 34, 0) 65%);
+}
+
+.footer-panel::after {
+  width: 52rem;
+  height: 52rem;
+  right: -16rem;
+  bottom: -22rem;
+  background: radial-gradient(circle, rgba(40, 168, 227, 0.28), rgba(40, 168, 227, 0) 65%);
+}
+
+/* --- Cabecera del footer --- */
+.footer-head {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2.2rem;
+  margin-bottom: 5rem;
+}
+
+.footer-title {
+  margin: 0;
+  color: #fff;
+  font-size: clamp(4rem, 7vw, 8rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.footer-sub {
+  margin: 0;
+  max-width: 46rem;
+  color: rgba(255, 246, 231, 0.75);
+  font-size: clamp(1.6rem, 0.9vw + 1.2rem, 1.9rem);
+  line-height: 1.6;
+}
+
+/* --- Datos de contacto + mapa --- */
+.footer-grid {
+  display: grid;
+  gap: 3rem;
+}
+
+.footer-list {
+  display: grid;
+  gap: 1.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.footer-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.6rem;
+  padding: 1.8rem 2rem;
+  border-radius: 2.4rem;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+/* Círculo del ícono: el color de cada fila viene de --tone */
+.footer-ico {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 4.6rem;
+  height: 4.6rem;
+  border-radius: 50%;
+  background: var(--tone);
+  color: var(--c-prim);
+  font-size: 1.8rem;
+}
+
+.footer-list div {
+  min-width: 0; /* permite que los correos largos se partan en vez de ensanchar la página */
+}
+
+.footer-list strong {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: rgba(255, 246, 231, 0.6);
+  font-size: 1.2rem;
   font-weight: 700;
-  display: inline-block;
-  min-height: var(--touch);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
-.btn-to-top:hover {
-  background: #0F2240;
+.footer-list p,
+.footer-list a {
+  display: block;
+  margin: 0;
+  color: #fff;
+  font-size: 1.6rem;
+  line-height: 1.65;
+  text-decoration: none;
+  overflow-wrap: anywhere;
 }
 
-/* ====================== MAPA RESPONSIVO POR RELACION DE ASPECTO ====================== */
-.map-embed {
-  width: 100%;
-  aspect-ratio: 4/3;
-  min-height: 24rem;
-  border-radius: .8rem;
+.footer-list a {
+  width: fit-content;
+  background-image: linear-gradient(var(--c-accent), var(--c-accent));
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 0 2px; /* subrayado que "crece" al pasar el mouse */
+  transition: background-size 0.3s var(--ease);
+}
+
+.footer-list a:hover {
+  background-size: 100% 2px;
+}
+
+.footer-map {
+  min-height: 30rem;
+  aspect-ratio: 4 / 3;
   overflow: hidden;
-  box-shadow: 0 .4rem 1.2rem rgba(0, 0, 0, .1);
-  background: #eaeaea;
+  border-radius: 3rem;
+  background: #0f2240;
+  box-shadow: 0 40px 70px -40px rgba(0, 0, 0, 0.7);
 }
 
-.map-embed iframe {
+.footer-map iframe {
+  display: block;
   width: 100%;
   height: 100%;
   border: 0;
-  display: block;
+}
+
+/* --- Enlaces rápidos --- */
+.footer-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 2.6rem;
+  margin-top: 5rem;
+  padding-top: 3rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.footer-nav a {
+  color: rgba(255, 246, 231, 0.8);
+  font-size: 1.5rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.footer-nav a:hover {
+  color: var(--c-accent);
+}
+
+/* --- Franja final --- */
+.footer-bottom {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.6rem;
+  padding-block: 2.4rem 3rem;
+  color: rgba(255, 246, 231, 0.65);
+  font-size: 1.4rem;
+}
+
+.footer-bottom p {
+  margin: 0;
+}
+
+.footer-bottom a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.4rem;
+}
+
+.footer-bottom a:hover {
+  color: var(--c-accent);
+}
+
+/* Botón redondo para volver arriba */
+.footer-bottom .footer-top {
+  display: grid;
+  place-items: center;
+  width: 5rem;
+  height: 5rem;
+  border-radius: 50%;
+  background: var(--c-accent);
+  color: var(--c-prim);
+  text-decoration: none;
+  transition: transform 0.3s var(--ease);
+}
+
+.footer-bottom .footer-top:hover {
+  color: var(--c-prim);
+  transform: translateY(-4px);
+}
+
+.footer-nav a:focus-visible,
+.footer-list a:focus-visible,
+.footer-bottom a:focus-visible {
+  outline: 0.3rem solid var(--c-accent);
+  outline-offset: 0.3rem;
+  border-radius: 0.4rem;
+}
+
+/* Nombre gigante del fondo: muy tenue, recortado por el panel */
+.footer-giant {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.06);
+  font-family: var(--font-display);
+  font-size: 12vw;
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  line-height: 0.85;
+  text-align: center;
+  white-space: nowrap;
+  user-select: none;
+  pointer-events: none;
+  will-change: translate;
+}
+
+@media screen and (min-width: 900px) {
+  .footer-panel {
+    padding-top: 9rem;
+  }
+
+  .footer-grid {
+    grid-template-columns: 1fr 1.1fr;
+    gap: 4rem;
+    align-items: stretch;
+  }
+
+  .footer-map {
+    aspect-ratio: auto;
+    min-height: 46rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .footer-giant {
+    translate: none;
+  }
 }
 
 /* ====================== BREAKPOINTS ====================== */
@@ -2237,63 +2621,25 @@ html:has(.home) {
 
 
 
-  .banner-inner {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-  }
 
-  .footer-right img {
-    max-height: 300px;
-  }
 
-  .map-embed {
-    min-height: 32rem;
-  }
 }
 
 /* Desktop ≥ 1024px */
 @media screen and (min-width: 1024px) {
 
 
-  .metodo-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .footer-grid {
-    grid-template-columns: 1.2fr .8fr;
-  }
-
-  .matricula-banner-horizontal h2 {
-    font-size: 2.8rem;
-  }
-
-  .footer-right img {
-    max-height: 40rem;
-  }
 
 
 
-  .metodo-grid {
-    grid-template-columns: 1fr 1fr;
-  }
+
+
+
 
   /* Darle más ancho al mapa en desktop */
-  .footer-grid {
-    grid-template-columns: .9fr 1.1fr;
-  }
 
-  .matricula-banner-horizontal h2 {
-    font-size: 2.8rem;
-  }
 
-  .footer-right img {
-    max-height: 40rem;
-  }
 
-  .map-embed {
-    min-height: 40rem;
-  }
 
   /* 400px en desktop */
 }

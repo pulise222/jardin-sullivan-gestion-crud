@@ -121,10 +121,12 @@ export default function useScrollEffects() {
       scrubBlocks.forEach(({ el, words }) => {
         if (!onScreen.has(el)) return;
         const rect = el.getBoundingClientRect();
-        // empieza cuando el bloque asoma al 85% de la pantalla y termina cuando su base llega al 45%
+        // Empieza a encenderse cuando el TOPE del bloque asoma al 85% de la pantalla y queda
+        // totalmente encendido cuando ese tope llega al 30%. Así, mientras lo estás leyendo
+        // (bloque en la mitad superior/media de la pantalla) ya se lee completo.
         const start = vh * 0.85;
-        const end = vh * 0.45;
-        const progress = clamp((start - rect.top) / (start - end + rect.height));
+        const end = vh * 0.3;
+        const progress = clamp((start - rect.top) / (start - end));
         words.forEach((word, i) => {
           // cada palabra se enciende cuando el progreso "llega" a su turno
           const lit = clamp(progress * words.length - i);
