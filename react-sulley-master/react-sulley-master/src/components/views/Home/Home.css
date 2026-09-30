@@ -2163,10 +2163,17 @@ html:has(.home) {
   height: 100%;
 }
 
-/* El sol da 2 vueltas completas entre arriba y abajo de la página (--scroll va de 0 a 1) */
+/* Solo los RAYOS giran con el scroll (2 vueltas entre arriba y abajo de la página; --scroll va de 0 a 1).
+   La cara se queda quieta y derecha, así el sol siempre se ve feliz. */
 .matricula-art .sl-logo-sun {
-  transform: rotate(calc(var(--scroll, 0) * 720deg));
   transition: none;
+}
+
+.matricula-art .sl-logo-rays {
+  transform: rotate(calc(var(--scroll, 0) * 720deg));
+  /* gira sobre el centro del propio dibujo de los rayos (no sobre la esquina del SVG) */
+  transform-box: fill-box;
+  transform-origin: center;
 }
 
 @media screen and (min-width: 900px) {
@@ -2331,7 +2338,7 @@ html:has(.home) {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .matricula-art .sl-logo-sun,
+  .matricula-art .sl-logo-rays,
   .metodo-badge-ring {
     transform: none;
   }

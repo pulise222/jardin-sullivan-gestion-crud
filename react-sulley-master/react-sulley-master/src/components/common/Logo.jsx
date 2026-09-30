@@ -20,7 +20,7 @@ export default function Logo({ showText = true, tone = "dark" }) {
       {/* aria-hidden: es decorativo; el nombre ya lo dice el texto de al lado */}
       <svg className="sl-logo-sun" viewBox="0 0 100 100" aria-hidden="true">
         {/* Rayos */}
-        <g stroke="#FEBF22" strokeWidth="9" strokeLinecap="round">
+        <g className="sl-logo-rays" stroke="#FEBF22" strokeWidth="9" strokeLinecap="round">
           <line x1="50" y1="5" x2="50" y2="17" />
           <line x1="50" y1="83" x2="50" y2="95" />
           <line x1="5" y1="50" x2="17" y2="50" />
