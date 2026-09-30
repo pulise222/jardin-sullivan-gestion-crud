@@ -103,13 +103,15 @@ class ActividadEstudiante(models.Model):
         blank=True,
         help_text="Archivo de la tarea subido por el alumno o acudiente"
     )
-    # Calificación con 1 decimal (ejemplo: 3.5, 4.0, 5.0)
+    # Evaluación CUALITATIVA guardada como código (ver academico/escala.py):
+    # 1 = Deficiente, 2 = Aceptable, 3 = Sobresaliente, vacío = sin evaluar.
+    # Se conserva la columna decimal que ya existía para no rehacer la base de datos.
     calificacion = models.DecimalField(
         max_digits=3,
         decimal_places=1,
         null=True,
         blank=True,
-        help_text="Nota cuantitativa de 0.0 a 5.0"
+        help_text="Nivel de evaluación: 1 Deficiente, 2 Aceptable, 3 Sobresaliente"
     )
 
     class Meta:

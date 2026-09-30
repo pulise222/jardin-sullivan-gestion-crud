@@ -30,29 +30,54 @@ from .serializers import (
     ActividadDetalleSerializer,
     ActividadEntregaSerializer,
 )
+from datetime import date
+from django.db.models import Q
+from academico.models import Periodo
+from academico.escala import etiqueta, promedio as promediar_niveles, codigo_de, NIVELES
 from estudiantes.models import Estudiante
 from personas.models import PersonaEstudiante, CursoProfesorMateria
+
+
+def _actividades_filtradas(request, curso_id):
+    """
+    Devuelve (queryset, error) con las actividades de un curso, según los parámetros:
+      - ?cpm=ID      -> solo las de ESA asignación (curso + materia + profesor). Es lo que usa el
+                        panel del profesor: así no se mezclan las materias de un mismo curso.
+      - ?todas=1     -> todas las materias del curso.
+      - (sin nada)   -> las del profesor autenticado en ese curso.
+      - ?periodo=N   -> solo las del periodo N del año (?anio=AAAA, por defecto el actual).
+                        Cuenta la actividad si tiene ese periodo asignado o si su fecha cae dentro.
+    """
+    qs = Actividad.objects.filter(asignada_por__curso_id=curso_id)
+
+    cpm_id = request.query_params.get('cpm')
+    if cpm_id:
+        qs = qs.filter(asignada_por_id=cpm_id)
+    elif request.query_params.get('todas') != '1':
+        profesor = getattr(request.user, 'persona', None)
+        if profesor is None:
+            return None, Response({'detail': 'El usuario autenticado no tiene un perfil de Persona asociado.'}, status=status.HTTP_400_BAD_REQUEST)
+        qs = qs.filter(asignada_por__persona=profesor)
+
+    numero = request.query_params.get('periodo')
+    if numero:
+        anio = int(request.query_params.get('anio') or date.today().year)
+        periodo = Periodo.objects.filter(anio=anio, numero=int(numero)).first()
+        if periodo is None:
+            return qs.none(), None
+        qs = qs.filter(Q(periodo=periodo) | Q(fecha__gte=periodo.fecha_inicio, fecha__lte=periodo.fecha_fin))
+    return qs, None
 
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def actividades_por_curso(request, curso_id):
     """
-    Lista las actividades creadas en un curso.
-    Parámetros query opcionales:
-      - ?todas=1 -> Todas las actividades de todas las materias del curso.
-      - ?todas=0 (por defecto) -> Solo las actividades del profesor autenticado.
+    Lista las actividades de un curso (ver _actividades_filtradas para los filtros ?cpm, ?todas, ?periodo).
     """
-    todas = request.query_params.get('todas') == '1'
-    qs = Actividad.objects.filter(asignada_por__curso_id=curso_id)
-
-    if not todas:
-        try:
-            profesor = request.user.persona
-            qs = qs.filter(asignada_por__persona=profesor)
-        except Exception:
-            return Response({'detail': 'El usuario autenticado no tiene un perfil de Persona asociado.'}, status=status.HTTP_400_BAD_REQUEST)
-
+    qs, error = _actividades_filtradas(request, curso_id)
+    if error:
+        return error
     data = ActividadSerializer(qs.order_by('-fecha', '-id'), many=True).data
     return Response(data)
 
@@ -87,6 +112,13 @@ def crear_actividad_en_curso(request, curso_id):
     ser = ActividadCreateSerializer(data=request.data)
     ser.is_valid(raise_exception=True)
     actividad = ser.save()
+
+    # Asignar el periodo automáticamente según la fecha de la actividad (si ese periodo existe).
+    # Antes quedaba vacío y solo se contaba en el boletín por el rango de fechas.
+    periodo = Periodo.objects.filter(fecha_inicio__lte=actividad.fecha, fecha_fin__gte=actividad.fecha).first()
+    if periodo:
+        actividad.periodo = periodo
+        actividad.save(update_fields=['periodo'])
 
     # 3. Generar la entrega individual para todos los estudiantes matriculados
     # bulk_create(): Optimización clave. En lugar de hacer 30 INSERT individuales,
@@ -166,7 +198,8 @@ def actividad_update_delete(request, actividad_id):
 def actualizar_entrega(request, actividad_estudiante_id):
     """
     Califica una entrega o actualiza la fecha de entrega de un estudiante.
-    Ejemplo JSON: { "calificacion": 4.8 }
+    Ejemplo JSON: { "calificacion": 3 }   (1 Deficiente · 2 Aceptable · 3 Sobresaliente)
+    Solo se aceptan esos tres niveles (o null para dejarla sin evaluar).
     """
     ae = get_object_or_404(ActividadEstudiante, pk=actividad_estudiante_id)
     campos_actualizables = ['calificacion', 'entregado_en']
@@ -177,7 +210,12 @@ def actualizar_entrega(request, actividad_estudiante_id):
 
     ser = ActividadEntregaSerializer(ae, data=data, partial=True, context={'request': request})
     ser.is_valid(raise_exception=True)
-    ser.save()
+    # Evaluar una actividad cuenta como "hecha": si aún no tenía fecha de entrega, se la ponemos.
+    # Así los filtros Entregadas/Pendientes del acudiente siguen teniendo sentido.
+    extra = {}
+    if data.get('calificacion') is not None and ae.entregado_en is None and 'entregado_en' not in data:
+        extra['entregado_en'] = now()
+    ser.save(**extra)
     return Response(ser.data)
 
 
@@ -210,19 +248,16 @@ def matriz_calificaciones_curso(request, curso_id: int):
     Retorna:
       - 'actividades': Columnas de la planilla (lista de tareas del curso).
       - 'estudiantes': Filas de la planilla (alumnos del curso).
-      - 'celdas': Cada calificación individual que cruza estudiante con actividad.
+      - 'celdas': Cada evaluación individual que cruza estudiante con actividad.
+    Cada estudiante trae además su 'promedio' y su 'nivel' (Deficiente/Aceptable/Sobresaliente),
+    calculados AQUÍ con academico/escala.py: es la misma cuenta que usa el boletín.
+    Filtros: ?cpm=ID (una materia), ?periodo=N (un periodo), ?todas=1 (ver _actividades_filtradas).
     """
-    todas = request.query_params.get('todas') == '1'
-    acts_qs = Actividad.objects.filter(asignada_por__curso_id=curso_id)
+    acts_qs, error = _actividades_filtradas(request, curso_id)
+    if error:
+        return error
 
-    if not todas:
-        try:
-            profesor = request.user.persona
-            acts_qs = acts_qs.filter(asignada_por__persona=profesor)
-        except Exception:
-            return Response({'detail': 'El usuario autenticado no tiene un perfil de Persona asociado.'}, status=status.HTTP_400_BAD_REQUEST)
-
-    actividades = list(acts_qs.order_by('fecha', 'id').values('id', 'titulo', 'fecha', 'peso'))
+    actividades = list(acts_qs.order_by('fecha', 'id').values('id', 'titulo', 'fecha'))
     estudiantes = list(Estudiante.objects.filter(curso_id=curso_id).order_by('apellido', 'nombre').values('id', 'nombre', 'apellido'))
 
     # Traer todas las entregas que correspondan a estas actividades
@@ -230,6 +265,7 @@ def matriz_calificaciones_curso(request, curso_id: int):
     rel_qs = ActividadEstudiante.objects.select_related('actividad', 'estudiante').filter(actividad_id__in=act_ids)
 
     celdas = []
+    codigos_por_estudiante = {}
     for ae in rel_qs:
         url = None
         if ae.entregable:
@@ -238,14 +274,23 @@ def matriz_calificaciones_curso(request, curso_id: int):
             except Exception:
                 url = None
 
+        codigo = codigo_de(ae.calificacion)
+        codigos_por_estudiante.setdefault(ae.estudiante_id, []).append(codigo)
         celdas.append({
             'actividad_id': ae.actividad_id,
             'estudiante_id': ae.estudiante_id,
             'actividad_estudiante_id': ae.id,
-            'calificacion': (str(ae.calificacion) if ae.calificacion is not None else None),
+            'calificacion': codigo,   # 1, 2, 3 o None (sin evaluar)
             'entregado_en': (ae.entregado_en.isoformat() if ae.entregado_en else None),
             'entregable_url': url,
         })
+
+    # Promedio cualitativo de cada estudiante en las actividades mostradas
+    for est in estudiantes:
+        media, nivel = promediar_niveles(codigos_por_estudiante.get(est['id'], []))
+        est['promedio'] = media
+        est['nivel'] = NIVELES.get(nivel, etiqueta(None))
+        est['nivel_codigo'] = nivel
 
     return Response({
         'actividades': actividades,
@@ -298,12 +343,14 @@ def entregas_por_estudiante(request, estudiante_id: int):
             'id': ae.id,
             'actividad_estudiante_id': ae.id,
             'actividad_id': a.id,
+            'materia': a.asignada_por.materia.nombre if a.asignada_por else None,
             'titulo': a.titulo,
             'descripcion': a.descripcion,
             'fecha': a.fecha.isoformat() if a.fecha else None,
             'fecha_entrega': a.fecha_entrega.isoformat() if a.fecha_entrega else None,
             'entregado_en': ae.entregado_en.isoformat() if ae.entregado_en else None,
-            'calificacion': str(ae.calificacion) if ae.calificacion is not None else None,
+            'calificacion': codigo_de(ae.calificacion),   # 1, 2, 3 o None
+            'nivel': etiqueta(ae.calificacion),           # "Sobresaliente", "Sin evaluar"…
             'entregable_url': preview_url,
             'download_url': download_url,
             'mime': mime,

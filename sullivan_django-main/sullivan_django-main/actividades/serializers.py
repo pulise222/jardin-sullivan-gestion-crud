@@ -1,6 +1,7 @@
 # actividades/serializers.py
 from rest_framework import serializers
 from .models import Actividad, ActividadEstudiante
+from academico.escala import CODIGOS_VALIDOS, codigo_de, etiqueta
 
 class ActividadSerializer(serializers.ModelSerializer):
     class Meta:
@@ -23,10 +24,24 @@ class ActividadCreateSerializer(serializers.ModelSerializer):
 class ActividadEntregaSerializer(serializers.ModelSerializer):
     estudiante_nombre = serializers.SerializerMethodField()
     entregable_url = serializers.SerializerMethodField()
+    # Texto del nivel ("Sobresaliente"…) calculado a partir del código guardado en `calificacion`
+    nivel = serializers.SerializerMethodField()
 
     class Meta:
         model = ActividadEstudiante
-        fields = ['id','estudiante','estudiante_nombre','entregado_en','calificacion','entregable_url']
+        fields = ['id','estudiante','estudiante_nombre','entregado_en','calificacion','nivel','entregable_url']
+
+    def validate_calificacion(self, value):
+        # La nota es un NIVEL: 1 Deficiente, 2 Aceptable, 3 Sobresaliente (ver academico/escala.py).
+        # Antes el backend aceptaba cualquier número (7, -2, 99.9); ahora solo la escala válida.
+        if value is not None and codigo_de(value) not in CODIGOS_VALIDOS:
+            raise serializers.ValidationError('La evaluación debe ser 1 (Deficiente), 2 (Aceptable) o 3 (Sobresaliente).')
+        if value is not None and value != codigo_de(value):
+            raise serializers.ValidationError('La evaluación debe ser un número entero: 1, 2 o 3.')
+        return value
+
+    def get_nivel(self, obj):
+        return etiqueta(obj.calificacion)
 
     def get_estudiante_nombre(self, obj):
         return f"{obj.estudiante.nombre} {obj.estudiante.apellido}"
@@ -53,14 +68,18 @@ class ActividadEntregaFullSerializer(serializers.ModelSerializer):
     fecha = serializers.DateField(source='actividad.fecha', read_only=True)
     fecha_entrega = serializers.DateField(source='actividad.fecha_entrega', read_only=True)
     entregable_url = serializers.SerializerMethodField()
+    nivel = serializers.SerializerMethodField()
 
     class Meta:
         model = ActividadEstudiante
         fields = [
             'actividad_estudiante_id', 'actividad_id',
             'titulo', 'descripcion', 'fecha', 'fecha_entrega',
-            'entregado_en', 'calificacion', 'entregable_url'
+            'entregado_en', 'calificacion', 'nivel', 'entregable_url'
         ]
+
+    def get_nivel(self, obj):
+        return etiqueta(obj.calificacion)
 
     def get_entregable_url(self, obj):
         try:

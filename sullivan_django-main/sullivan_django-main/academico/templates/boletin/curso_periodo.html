@@ -57,7 +57,6 @@
     <thead>
       <tr>
         <th>Materia</th>
-        <th>Promedio</th>
         <th>Desempeño</th>
         <th>Inasistencias</th>
         <th>Observación</th>
@@ -70,7 +69,6 @@
           <strong>{{ fila.materia_nombre }}</strong>
           {% if fila.profesor %}<br><span class="muted">Docente: {{ fila.profesor }}</span>{% endif %}
         </td>
-        <td>{{ fila.promedio }}</td>
         <td>{{ fila.desempeno }}</td>
         <td>{{ fila.inasistencias|default:"0" }}</td>
         <td>{{ fila.observacion_docente|default:"" }}</td>

@@ -20,6 +20,7 @@ from personas.models import CursoProfesorMateria
 from estudiantes.models import Estudiante
 from cursos.models import Curso
 from .models import Periodo, Logro
+from .escala import etiqueta, promedio as promediar_niveles
 
 # Importación segura de Asistencia (si el módulo clases está activo)
 try:
@@ -43,23 +44,13 @@ def _redondear_1d(valor):
     return float(Decimal(str(valor)).quantize(Decimal('0.1'), rounding=ROUND_HALF_UP))
 
 
-def escala_desempeno(nota):
+def escala_desempeno(nivel):
     """
-    Clasifica la nota numérica según la escala institucional de evaluación en Colombia:
-      - 0.0 a 2.9: DESEMPEÑO BAJO    (No alcanza los objetivos mínimos)
-      - 3.0 a 3.9: DESEMPEÑO BÁSICO   (Alcanza los objetivos con apoyo)
-      - 4.0 a 4.5: DESEMPEÑO ALTO    (Buen nivel de comprensión y trabajo)
-      - 4.6 a 5.0: DESEMPEÑO SUPERIOR(Supera ampliamente las metas)
+    Texto del desempeño a partir del código de nivel (1, 2 o 3):
+      1 -> Deficiente · 2 -> Aceptable · 3 -> Sobresaliente · None -> Sin evaluar
+    (Antes era la escala numérica BAJO/BÁSICO/ALTO/SUPERIOR; ver academico/escala.py.)
     """
-    if nota is None:
-        return 'SIN NOTA'
-    if nota < 3.0:
-        return 'BAJO'
-    elif nota < 4.0:
-        return 'BÁSICO'
-    elif nota <= 4.5:
-        return 'ALTO'
-    return 'SUPERIOR'
+    return etiqueta(nivel)
 
 
 def calcular_boletin_estudiante_periodo(curso_id: int, periodo: Periodo, estudiante_id: int):
@@ -120,30 +111,13 @@ def calcular_boletin_estudiante_periodo(curso_id: int, periodo: Periodo, estudia
         # ----------------------------------------------------------------------
         # CÁLCULO DE PROMEDIO DE NOTAS
         # ----------------------------------------------------------------------
-        suma_ponderada = Decimal('0.0')
-        suma_pesos = Decimal('0.0')
-        notas_simples = []
-
-        for ae in entregas:
-            if ae.calificacion is not None:
-                nota = Decimal(str(ae.calificacion))
-                notas_simples.append(float(nota))
-
-                # Si la actividad tiene configurado un porcentaje/peso
-                peso = ae.actividad.peso
-                if peso and peso > 0:
-                    suma_ponderada += nota * Decimal(str(peso))
-                    suma_pesos += Decimal(str(peso))
-
-        # Determinar promedio final de la materia:
-        if suma_pesos > 0:
-            # Promedio ponderado por porcentajes
-            promedio_calculado = float(suma_ponderada / suma_pesos)
-        elif notas_simples:
-            # Promedio aritmético simple si no hay pesos asignados
-            promedio_calculado = sum(notas_simples) / len(notas_simples)
-        else:
-            promedio_calculado = None
+        # Las notas son NIVELES cualitativos (1 Deficiente, 2 Aceptable, 3 Sobresaliente).
+        # Se promedian con la misma función que usa la planilla del profesor (escala.py):
+        # media de los códigos -> se redondea al nivel más cercano.
+        # Ya no se usa el "peso" de las actividades: con tres niveles no tiene sentido ponderar,
+        # y antes las actividades sin peso se ignoraban en silencio cuando otras sí lo tenían.
+        # Las actividades sin evaluar (None) no cuentan en el promedio.
+        promedio_final, nivel_final = promediar_niveles([ae.calificacion for ae in entregas])
 
         # Si existe una nota final consolidada manualmente por el docente (NotaMateriaPeriodo),
         # esta tiene prioridad sobre el cálculo automático
@@ -153,10 +127,9 @@ def calcular_boletin_estudiante_periodo(curso_id: int, periodo: Periodo, estudia
             if nmp:
                 observacion_docente = nmp.observacion_docente or ''
                 if nmp.promedio is not None:
-                    promedio_calculado = float(nmp.promedio)
+                    promedio_final, nivel_final = promediar_niveles([nmp.promedio])
 
-        promedio_final = _redondear_1d(promedio_calculado)
-        desempeno = escala_desempeno(promedio_final)
+        desempeno = escala_desempeno(nivel_final)
 
         # ----------------------------------------------------------------------
         # CÁLCULO DE INASISTENCIAS (FALTAS)
@@ -182,10 +155,16 @@ def calcular_boletin_estudiante_periodo(curso_id: int, periodo: Periodo, estudia
             'profesor': f"{cpm.persona.nombre} {cpm.persona.apellido}",
             'promedio': promedio_final,
             'desempeno': desempeno,
+            'nivel_codigo': nivel_final,   # 1, 2, 3 o None: el front lo usa para el color del nivel
             'inasistencias': faltas,
             'observacion_docente': observacion_docente,
             'logros': logros,
         })
+
+    # Resumen general del periodo: promedio cualitativo de los niveles de todas las materias.
+    # Se calcula aquí (misma función de escala.py) para que el front no repita la cuenta.
+    _, nivel_general = promediar_niveles([m['nivel_codigo'] for m in materias_resultado])
+    inasistencias_total = sum(m['inasistencias'] for m in materias_resultado)
 
     # Estructura del boletín consolidado
     return {
@@ -212,5 +191,8 @@ def calcular_boletin_estudiante_periodo(curso_id: int, periodo: Periodo, estudia
             'numero_documento': estudiante.numero_documento,
         },
         'materias': materias_resultado,
+        'desempeno_general': escala_desempeno(nivel_general),
+        'nivel_general': nivel_general,
+        'inasistencias_total': inasistencias_total,
         'observaciones_generales': '',
     }
