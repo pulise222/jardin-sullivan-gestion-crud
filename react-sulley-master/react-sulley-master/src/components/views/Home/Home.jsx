@@ -6,6 +6,7 @@ import "./Home.css";
 import logo from "../../../assets/logo.png";
 import pelados from "../../../assets/pelados.png";
 import pelados2 from "../../../assets/pelados2.png";
+import jugando from "../../../assets/niños-jugando.png";
 import evento1 from '../../../assets/evento01.jpeg'
 
 /*
@@ -81,6 +82,37 @@ const EVENTS = [
     place: "Biblioteca",
     description: "Cuentacuentos y trueque de libros.",
     image: evento1, link: "#", color: "#FF8A00",
+  },
+];
+
+/*
+  NOSOTROS: los cuatro pilares del jardín (antes eran cuatro párrafos largos).
+  `color` tiñe el círculo del ícono de cada tarjeta (colores de la paleta).
+*/
+const PILLARS = [
+  {
+    icon: "🏡",
+    title: "Ambiente cálido y seguro",
+    text: "Un espacio acogedor y afectivo donde los niños desarrollan habilidades sociales, emocionales y cognitivas de forma natural y divertida.",
+    color: "#FEBF22",
+  },
+  {
+    icon: "💛",
+    title: "Atención personalizada",
+    text: "Un equipo de profesionales capacitados acompaña a cada niño para asegurar su desarrollo integral y un crecimiento saludable.",
+    color: "#F25141",
+  },
+  {
+    icon: "🌈",
+    title: "Entorno inclusivo",
+    text: "Cada niño se siente valorado y respetado. Promovemos la diversidad y valores como la empatía, el respeto y la colaboración.",
+    color: "#28A8E3",
+  },
+  {
+    icon: "🎨",
+    title: "Programas especializados",
+    text: "Actividades artísticas, musicales y deportivas que estimulan el desarrollo físico y mental de los niños.",
+    color: "#93C524",
   },
 ];
 const Home = () => {
@@ -159,16 +191,23 @@ const Home = () => {
     return () => io.disconnect();
   }, []);
 
-  // Reveal para la sección Nosotros
+  // Aparecer al hacer scroll (reutilizable): cualquier elemento con el atributo
+  // data-reveal empieza invisible y, cuando entra en pantalla, recibe la clase
+  // "is-visible". El CSS se encarga de la animación (ver "REVEAL" en Home.css).
   useEffect(() => {
-    const nosSection = document.querySelector('.nos-section');
-    if (!nosSection) return;
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) nosSection.classList.add('is-visible');
-      });
-    }, { threshold: 0.12 });
-    io.observe(nosSection);
+    const items = document.querySelectorAll("[data-reveal]");
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+            io.unobserve(entry.target); // ya apareció: dejamos de vigilarlo
+          }
+        });
+      },
+      { threshold: 0.15, rootMargin: "0px 0px -8% 0px" }
+    );
+    items.forEach((item) => io.observe(item));
     return () => io.disconnect();
   }, []);
 
@@ -480,62 +519,77 @@ const Home = () => {
         </div>
       </section>
 
-      {/* NOSOTROS */}
+      {/* ==========================================================
+          NOSOTROS: presentación del jardín.
+          Estructura:
+            .nos-intro    → mosaico de fotos + texto principal
+            .nos-pillars  → 4 tarjetas con lo que nos define
+            .nos-quote    → frase destacada de cierre
+          Los elementos con `data-reveal` aparecen animados al hacer scroll
+          (el retraso de cada uno se controla con la variable --d).
+          ========================================================== */}
       <section className="nos-section" id="Nosotros">
-        <div className="wrap nos-inner">
-          <div className="nos-text">
-            <h2>Nosotros</h2>
-            <p>
-              En Jardín Sullivan creemos en el aprendizaje activo, el juego y
-              la atención personalizada. Nuestro equipo trabaja en equipo para
-              crear experiencias que fomenten la curiosidad, la creatividad y
-              el respeto por los demás.
-            </p>
-            <p>
-              Nuestro proyecto educativo integra actividades artísticas,
-              experimentos y salidas presenciales que enriquecen el desarrollo
-              integral de los niños.
-            </p>
+        <div className="wrap">
+
+          {/* --- Fotos + texto --- */}
+          <div className="nos-intro">
+            {/* Mosaico: una foto grande y otra pequeña que se superpone */}
+            <div className="nos-media" data-reveal="left">
+              <div className="nos-photo nos-photo-main">
+                <img src={pelados2} alt="Profesora y niños disfrazados posando en el jardín" loading="lazy" />
+              </div>
+              <div className="nos-photo nos-photo-small">
+                <img src={jugando} alt="Niños jugando al aire libre" loading="lazy" />
+              </div>
+            </div>
+
+            <div className="nos-text">
+              <span className="nos-eyebrow" data-reveal>Nosotros</span>
+              <h2 className="nos-title" data-reveal style={{ "--d": ".08s" }}>
+                Creemos en aprender{" "}
+                <span className="nos-title-highlight">jugando</span>
+              </h2>
+              <p className="nos-lead" data-reveal style={{ "--d": ".16s" }}>
+                En Jardín Sullivan creemos en el aprendizaje activo, el juego y
+                la atención personalizada. Nuestro equipo trabaja en equipo para
+                crear experiencias que fomenten la curiosidad, la creatividad y
+                el respeto por los demás.
+              </p>
+              <p className="nos-body" data-reveal style={{ "--d": ".24s" }}>
+                Nuestro proyecto educativo integra actividades artísticas,
+                experimentos y salidas presenciales que enriquecen el desarrollo
+                integral de los niños.
+              </p>
+            </div>
           </div>
 
-          <div className="nos-media">
-            <img src={pelados2} alt="Profesora con niños" />
-          </div>
-        </div>
-      </section>
+          {/* --- Pilares: PILLARS.map() dibuja una tarjeta por cada elemento ---
+              --tone le pasa al CSS el color de esa tarjeta */}
+          <ul className="nos-pillars">
+            {PILLARS.map((pillar, i) => (
+              <li
+                key={pillar.title}
+                className="nos-pillar"
+                data-reveal
+                style={{ "--tone": pillar.color, "--d": `${i * 0.08}s` }}
+              >
+                <span className="nos-pillar-icon" aria-hidden="true">{pillar.icon}</span>
+                <h3>{pillar.title}</h3>
+                <p>{pillar.text}</p>
+              </li>
+            ))}
+          </ul>
 
-      {/* TEXTO 2 COLUMNAS */}
-      <section className="wrap two-cols">
-        <div className="col">
-          <p>
-            En nuestro Jardín Infantil, ofrecemos un ambiente cálido y acogedor
-            donde los niños pueden desarrollar sus habilidades sociales,
-            emocionales y cognitivas de manera natural y divertida. Nuestro
-            enfoque educativo está basado en la curiosidad y la exploración,
-            fomentando la creatividad y el aprendizaje a través del juego.
-          </p>
-          <p>
-            Contamos con un equipo de profesionales capacitados que se esfuerzan
-            por brindar atención personalizada a cada niño, asegurando su
-            desarrollo integral y un crecimiento saludable en un ambiente seguro
-            y afectivo.
-          </p>
-        </div>
-
-        <div className="col">
-          <p>
-            Además, en nuestro Jardín Infantil nos enfocamos en crear un entorno
-            inclusivo donde cada niño se sienta valorado y respetado. Promovemos
-            la diversidad y enseñamos a los pequeños a apreciar las diferencias,
-            fomentando valores como la empatía, el respeto y la colaboración.
-          </p>
-          <p>
-            También contamos con programas especializados que incluyen
-            actividades artísticas, musicales y deportivas, diseñadas para
-            estimular el desarrollo físico y mental de los niños. Nuestro
-            objetivo es prepararlos no solo para la escuela, sino para la vida,
-            ayudándoles a construir una base sólida de confianza y autoestima.
-          </p>
+          {/* --- Frase de cierre --- */}
+          <blockquote className="nos-quote" data-reveal>
+            <p className="nos-quote-text">
+              Prepararlos no solo para la escuela,{" "}
+              <span className="nos-title-highlight">sino para la vida</span>.
+            </p>
+            <p className="nos-quote-sub">
+              Ayudándoles a construir una base sólida de confianza y autoestima.
+            </p>
+          </blockquote>
         </div>
       </section>
 

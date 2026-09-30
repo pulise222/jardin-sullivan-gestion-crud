@@ -1170,119 +1170,316 @@ html:has(.home) {
   }
 }
 
-/* ====================== NOSOTROS (rediseño) ====================== */
-.nos-section {
-  background: var(--c-bg);
-  padding-block: 6rem;
+/* ====================== REVEAL (aparecer al hacer scroll) ====================== */
+/*
+  Cualquier elemento con el atributo data-reveal empieza invisible y desplazado.
+  Cuando React le agrega la clase .is-visible, vuelve a su sitio con una transición.
+    data-reveal          → sube desde abajo
+    data-reveal="left"   → entra desde la izquierda
+    data-reveal="right"  → entra desde la derecha
+  --d es el retraso (delay) que le ponemos a cada elemento en el JSX.
+*/
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(2.4rem);
+  transition: opacity 0.8s var(--ease), transform 0.8s var(--ease);
+  transition-delay: var(--d, 0s);
 }
 
-.nos-inner {
+[data-reveal="left"] {
+  transform: translateX(-3.2rem);
+}
+
+[data-reveal="right"] {
+  transform: translateX(3.2rem);
+}
+
+/* Estado final (más específico que los anteriores, por eso gana) */
+[data-reveal].is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* ====================== NOSOTROS ====================== */
+.nos-section {
+  background: var(--c-bg);
+  padding-block: 10rem 8rem;
+}
+
+/* Fotos + texto: en móvil una columna, en escritorio dos */
+.nos-intro {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 2.4rem;
+  gap: 5rem;
   align-items: center;
 }
 
-.nos-media img {
-  width: 100%;
-  display: block;
-  border-radius: 1.2rem;
-  box-shadow: 0 .6rem 1.6rem rgba(11,30,60,0.06);
-  transform: translateY(0);
-  transition: transform 0.8s cubic-bezier(0.16,1,0.3,1);
-}
-
-.nos-text h2 {
-  font-size: clamp(2.4rem, 2rem + 1vw, 3.2rem);
-  color: var(--c-prim);
-  margin: 0 0 1.2rem;
-}
-
-.nos-text p { font-size: 1.6rem; color: #333; line-height:1.8 }
-
-.nos-section.reveal-on-scroll { opacity: 0; transform: translateY(2.2rem); transition: all 0.8s cubic-bezier(0.16,1,0.3,1); }
-.nos-section.is-visible { opacity: 1; transform: translateY(0); }
-
-@media screen and (min-width: 768px) {
-  /* Mejor distribución: texto más ancho y media más estrecha para balance visual */
-  .nos-inner { grid-template-columns: 58% 42%; gap: 4.8rem; align-items: start; }
-}
-
-/* Animaciones más detalladas para la sección Nosotros */
-.nos-text,
+/* --- Mosaico de fotos --- */
 .nos-media {
-  opacity: 0;
-  transform: translateY(0) translateX(0);
-  transition: opacity 0.72s cubic-bezier(0.16,1,0.3,1), transform 0.72s cubic-bezier(0.16,1,0.3,1);
+  position: relative;
+  /* espacio abajo para que la foto pequeña "sobresalga" del marco de la grande */
+  padding-bottom: 5rem;
+  margin-right: 1.4rem;
 }
 
-.nos-text { transform: translateX(-28px); }
-.nos-media { transform: translateX(28px); }
-
-.nos-section.is-visible .nos-text { opacity: 1; transform: translateX(0); transition-delay: 0.08s; }
-.nos-section.is-visible .nos-media { opacity: 1; transform: translateX(0); transition-delay: 0.18s; }
-
-/* Estagger para párrafos internos */
-.nos-text p { opacity: 0; transform: translateY(12px); transition: opacity 0.6s ease, transform 0.6s ease; }
-.nos-section.is-visible .nos-text p:nth-of-type(1) { opacity: 1; transform: translateY(0); transition-delay: 0.14s; }
-.nos-section.is-visible .nos-text p:nth-of-type(2) { opacity: 1; transform: translateY(0); transition-delay: 0.22s; }
-
-/* Asegurar buena legibilidad en anchos grandes */
-.nos-text { max-width: 62ch; display: flex; flex-direction: column; gap: 1.2rem; }
-
-/* Ajustes tipográficos para mejor lectura y distribución */
-.nos-text h2 { margin-bottom: .8rem; }
-.nos-text p { font-size: 1.65rem; line-height: 1.95; color: rgba(15,34,64,0.88); margin-bottom: 1.2rem; }
-
-/* Separador visual entre Nosotros y el siguiente bloque */
-.nos-section { padding-bottom: 3.6rem; }
-
-/* Asegurar que la sección de texto en dos columnas posterior no invada el layout */
-.two-cols { padding-top: 3.2rem; }
-
-/* Preferencias de reducción de movimiento */
-@media (prefers-reduced-motion: reduce) {
-  .nos-text,
-  .nos-media,
-  .nos-text p,
-  .ev-card-inner { transition: none !important; transform: none !important; }
+/* tarjeta celeste inclinada detrás de la foto grande (mismo truco que el hero) */
+.nos-media::before {
+  content: "";
+  position: absolute;
+  inset: 4% 4% 9% -3%;
+  border-radius: 4.4rem;
+  background: var(--c-blue);
+  opacity: 0.85;
+  transform: rotate(-3deg);
 }
 
-/* Ajustes responsive finos */
-@media screen and (max-width: 767px) {
-  .nos-text { order: 2; }
-  .nos-media { order: 1; }
-  .nos-text p { font-size: 1.55rem; }
-  .nos-media img { max-height: 36rem; object-fit: cover; }
+.nos-photo {
+  position: relative;
+  overflow: hidden; /* recorta la imagen a las esquinas redondeadas */
 }
 
+.nos-photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.9s var(--ease);
+}
 
-/* ====================== NOSOTROS ====================== */
-.nos {
-  text-align: center;
+.nos-photo:hover img {
+  transform: scale(1.05); /* zoom suave al pasar el mouse */
+}
+
+.nos-photo-main {
+  aspect-ratio: 4 / 3.3;
+  border-radius: 4.4rem 4.4rem 4.4rem 12rem;
+  box-shadow: 0 40px 80px -30px rgba(27, 49, 88, 0.5);
+}
+
+/* Foto pequeña: encima de la grande, en la esquina inferior derecha.
+   El borde del color del fondo la "recorta" visualmente de la foto grande. */
+.nos-photo-small {
+  position: absolute;
+  right: -1.4rem;
+  bottom: 0;
+  width: 42%;
+  aspect-ratio: 3 / 4;
+  border-radius: 3rem;
+  border: 0.8rem solid var(--c-bg);
+  box-shadow: 0 24px 50px -20px rgba(27, 49, 88, 0.5);
+}
+
+/* --- Texto --- */
+.nos-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2rem;
+}
+
+.nos-eyebrow {
+  display: inline-flex;
+  padding: 0.6rem 1.4rem;
+  border-radius: 10rem;
+  background: rgba(27, 49, 88, 0.07);
+  border: 1px solid rgba(27, 49, 88, 0.12);
   color: var(--c-prim);
-  padding: 4rem 1rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
-.nos h2 {
-  font-size: clamp(2.0rem, 1.8rem + 1vw, 3.2rem);
-  font-weight: 800;
-  color: #1B3158;
+.nos-title {
   margin: 0;
+  color: var(--c-prim);
+  font-size: clamp(3.4rem, 5vw, 6rem);
+  font-weight: 800;
+  line-height: 1.02;
+  letter-spacing: -0.035em;
 }
 
-
-/* ====================== TEXTO 2 COLUMNAS ====================== */
-.two-cols {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 2.2rem;
-  padding-block: 4rem;
+/* Palabra destacada con el degradado "amanecer" (igual que en el hero) */
+.nos-title-highlight {
+  display: inline-block;
+  background: linear-gradient(100deg, #ffb400 0%, var(--c-orange) 55%, var(--c-red) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  padding-bottom: 0.08em; /* evita que se corte la cola de letras como la "j" */
 }
 
-.two-cols .col {
-  font-size: var(--fs-body);
+.nos-lead {
+  margin: 0;
+  max-width: 52rem;
+  color: rgba(27, 49, 88, 0.88);
+  font-size: clamp(1.7rem, 0.9vw + 1.3rem, 2rem);
   line-height: 1.7;
+}
+
+.nos-body {
+  margin: 0;
+  max-width: 52rem;
+  color: rgba(27, 49, 88, 0.7);
+  font-size: 1.6rem;
+  line-height: 1.75;
+}
+
+/* --- Pilares: rejilla de tarjetas --- */
+.nos-pillars {
+  display: grid;
+  grid-template-columns: 1fr; /* móvil: una columna */
+  gap: 2rem;
+  margin: 9rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.nos-pillar {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  padding: 3rem 2.6rem;
+  border-radius: 2.8rem;
+  background: #fff;
+  border: 1px solid rgba(27, 49, 88, 0.07);
+  box-shadow: 0 18px 40px -26px rgba(27, 49, 88, 0.35);
+  /* Animamos la aparición (opacity + transform, con retraso --d) y también el
+     hover (sombra y borde, sin retraso). Cada retraso de la lista de abajo
+     corresponde, en orden, a cada propiedad de esta lista. */
+  transition: opacity 0.8s var(--ease), transform 0.8s var(--ease),
+    box-shadow 0.35s ease, border-color 0.35s ease;
+  transition-delay: var(--d, 0s), var(--d, 0s), 0s, 0s;
+}
+
+.nos-pillar.is-visible:hover {
+  transform: translateY(-0.6rem);
+  border-color: var(--tone);
+  box-shadow: 0 28px 50px -24px rgba(27, 49, 88, 0.45);
+}
+
+/* Círculo del ícono: mezcla el color de la tarjeta con blanco para un tono suave */
+.nos-pillar-icon {
+  display: grid;
+  place-items: center;
+  width: 5.6rem;
+  height: 5.6rem;
+  margin-bottom: 0.6rem;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--tone) 24%, white);
+  font-size: 2.6rem;
+  line-height: 1;
+}
+
+.nos-pillar h3 {
+  margin: 0;
+  color: var(--c-prim);
+  font-size: 2.1rem;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.nos-pillar p {
+  margin: 0;
+  color: rgba(27, 49, 88, 0.72);
+  font-size: 1.5rem;
+  line-height: 1.65;
+}
+
+/* --- Frase de cierre --- */
+.nos-quote {
+  position: relative;
+  max-width: 92rem;
+  margin: 9rem auto 0;
+  text-align: center;
+}
+
+/* Comillas grandes decorativas encima de la frase */
+.nos-quote::before {
+  content: "\201C";
+  display: block;
+  height: 5rem;
+  color: var(--c-accent);
+  font-family: var(--font-display);
+  font-size: 14rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.nos-quote-text {
+  margin: 0;
+  color: var(--c-prim);
+  font-family: var(--font-display);
+  font-size: clamp(2.8rem, 4.4vw, 5.2rem);
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -0.03em;
+}
+
+.nos-quote-sub {
+  margin: 2rem auto 0;
+  max-width: 56rem;
+  color: rgba(27, 49, 88, 0.68);
+  font-size: 1.7rem;
+  line-height: 1.6;
+}
+
+/* --- Responsive --- */
+/* Tablet ≥640: pilares en 2 columnas */
+@media screen and (min-width: 640px) {
+  .nos-pillars {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Escritorio ≥900: foto a la izquierda, texto a la derecha */
+@media screen and (min-width: 900px) {
+  .nos-intro {
+    grid-template-columns: 1.05fr 1fr;
+    gap: 8rem;
+  }
+
+  .nos-media {
+    margin-right: 2.4rem;
+  }
+}
+
+/* Escritorio grande ≥1100: pilares en 4 columnas */
+@media screen and (min-width: 1100px) {
+  .nos-pillars {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Móvil */
+@media screen and (max-width: 767px) {
+  .nos-section {
+    padding-block: 7rem 6rem;
+  }
+
+  .nos-pillars,
+  .nos-quote {
+    margin-top: 6rem;
+  }
+
+  .nos-photo-main {
+    border-radius: 3rem 3rem 3rem 8rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nos-photo img,
+  .nos-pillar {
+    transition: none;
+  }
 }
 
 /* ====================== GRUPOS ====================== */
@@ -1604,10 +1801,6 @@ html:has(.home) {
   .welcome-inner {
     flex-direction: row;
     gap: 1.6rem;
-  }
-
-  .two-cols {
-    grid-template-columns: 1fr 1fr;
   }
 
   .grupos-grid {
