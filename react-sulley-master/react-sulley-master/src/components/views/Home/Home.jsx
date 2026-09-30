@@ -13,7 +13,6 @@ import pelados from "../../../assets/pelados.png";
 import pelados2 from "../../../assets/pelados2.png";
 import jugando from "../../../assets/niños-jugando.png";
 import baile from "../../../assets/baile.png";
-import evento1 from '../../../assets/evento01.jpeg'
 
 /*
   ENLACES DEL MENÚ: una sola lista que usamos para dibujar el menú Y para
@@ -49,6 +48,11 @@ const HERO = {
 }
 
 /*
+  FOTOS DE LOS EVENTOS: por ahora usan fotos del jardín que ya están en src/assets.
+  Para poner una foto real de cada evento: guárdala en src/assets/eventos/, impórtala arriba
+  (import cienciaImg from '../../../assets/eventos/ciencia.jpg') y cambia el campo `image`.
+  `position` decide qué parte de la foto se ve en la tarjeta (ej. "50% 30%" = centro y un poco arriba).
+
   EVENTOS: datos de ejemplo. Más adelante estos datos vendrán de la API del
   backend (la app `eventos` de Django); por ahora viven aquí para diseñar.
   `color` es el color de la fecha y del botón de cada tarjeta (paleta de la marca).
@@ -59,35 +63,35 @@ const EVENTS = [
     day: "12", month: "Oct", time: "9:00 a.m.",
     place: "Auditorio Principal",
     description: "Muestras de proyectos y experimentos de los niños.",
-    image: evento1, link: "#", color: "#FEBF22",
+    image: pelados, position: "50% 40%", link: "#", color: "#FEBF22",
   },
   {
     title: "Día de la familia",
     day: "20", month: "Oct", time: "8:00 a.m.",
     place: "Patio Central",
     description: "Juegos, picnic y actividades colaborativas.",
-    image: evento1, link: "#", color: "#28A8E3",
+    image: jugando, position: "50% 35%", link: "#", color: "#28A8E3",
   },
   {
     title: "Muestra artística",
     day: "28", month: "Oct", time: "10:00 a.m.",
     place: "Sala Multiusos",
     description: "Exposición de arte y música.",
-    image: evento1, link: "#", color: "#93C524",
+    image: baile, position: "55% 30%", link: "#", color: "#93C524",
   },
   {
     title: "Charla de nutrición",
     day: "05", month: "Nov", time: "4:00 p.m.",
     place: "Aula 3",
     description: "Hábitos saludables en la primera infancia.",
-    image: evento1, link: "#", color: "#F25141",
+    image: pelados, position: "88% 55%", link: "#", color: "#F25141",
   },
   {
     title: "Festival de lectura",
     day: "15", month: "Nov", time: "9:30 a.m.",
     place: "Biblioteca",
     description: "Cuentacuentos y trueque de libros.",
-    image: evento1, link: "#", color: "#FF8A00",
+    image: pelados2, position: "50% 25%", link: "#", color: "#FF8A00",
   },
 ];
 
@@ -164,6 +168,21 @@ const Home = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const scrollerRef = useRef(null);
   const [activeId, setActiveId] = useState("inicio");
+  // Qué tarjeta de evento tiene abierta su tarjetita de información (se usa al TOCAR, en celular)
+  const [openEv, setOpenEv] = useState(null);
+
+  // Cierra la tarjetita al tocar fuera o al pulsar Esc
+  useEffect(() => {
+    if (openEv === null) return;
+    const close = () => setOpenEv(null);
+    const onKey = (e) => e.key === "Escape" && close();
+    document.addEventListener("click", close);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("click", close);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [openEv]);
   const heroRef = useRef(null);
 
   // Efectos ligados al scroll: parallax, texto que se enciende, tarjetas apiladas, barra de progreso
@@ -479,7 +498,7 @@ const Home = () => {
                   <article className="ev-card" style={{ "--accent": ev.color, "--i": i }}>
                     <div className="ev-card-inner">
                       {/* Foto de fondo. alt="" porque es decorativa (el texto ya dice todo) */}
-                      <img className="ev-card-img" src={ev.image} alt="" loading="lazy" />
+                      <img className="ev-card-img" src={ev.image} alt="" loading="lazy" style={{ objectPosition: ev.position }} />
 
                       {/* Fecha tipo calendario. aria-hidden: los lectores de pantalla
                           la saltan, porque la fecha completa ya está en .ev-meta */}
@@ -492,21 +511,36 @@ const Home = () => {
                       <p className="ev-meta">{ev.day} {ev.month} · {ev.time} · {ev.place}</p>
                       <h3 className="ev-title">{ev.title}</h3>
 
-                      {/* La descripción va dentro de un contenedor para poder
-                          animar su apertura al pasar el mouse (ver CSS) */}
-                      <div className="ev-desc-wrap">
-                        <p className="ev-desc">{ev.description}</p>
-                      </div>
-
-                      {/* `ev.link && (...)` = "si hay enlace, dibuja el botón" */}
-                      {ev.link && (
-                        <a className="ev-link" href={ev.link}>
+                      {/* Botón "Ver detalle": muestra una tarjetita con los datos del evento.
+                          - Con mouse: aparece al pasar el cursor (CSS :hover)
+                          - Con teclado: aparece al enfocar el botón (CSS :focus-visible)
+                          - En celular: aparece al tocarlo (estado openEv) */}
+                      <div className={`ev-more ${openEv === i ? "is-open" : ""}`}>
+                        <button
+                          type="button"
+                          className="ev-link"
+                          aria-expanded={openEv === i}
+                          aria-describedby={`ev-pop-${i}`}
+                          onClick={(e) => {
+                            e.stopPropagation(); // evita que el "clic fuera" la cierre al instante
+                            setOpenEv(openEv === i ? null : i);
+                          }}
+                        >
                           Ver detalle
                           <span className="ev-link-icon" aria-hidden="true">
                             <i className="fas fa-arrow-right"></i>
                           </span>
-                        </a>
-                      )}
+                        </button>
+
+                        <div className="ev-pop" id={`ev-pop-${i}`} role="tooltip">
+                          <strong>{ev.title}</strong>
+                          <ul>
+                            <li><i className="fas fa-calendar-day" aria-hidden="true"></i> {ev.day} {ev.month} · {ev.time}</li>
+                            <li><i className="fas fa-location-dot" aria-hidden="true"></i> {ev.place}</li>
+                          </ul>
+                          <p>{ev.description}</p>
+                        </div>
+                      </div>
                     </div>
                   </article>
                 </li>

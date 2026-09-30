@@ -958,59 +958,138 @@ html:has(.home) {
 }
 
 /*
-  Descripción: en pantallas con mouse se oculta y "se despliega" al pasar el cursor.
-  Truco de grid: una fila que pasa de altura 0fr a 1fr se anima suavemente
-  (con `height: auto` normal no se podría animar). En celular siempre se ve.
+  Tarjetita de información del evento (.ev-pop). Vive dentro de .ev-more, que contiene el botón.
+  Está oculta y se muestra con hover (mouse), foco de teclado o al tocar el botón (clase is-open).
+  Se posiciona respecto a la tarjeta (.ev-card-inner es position: relative).
 */
-.ev-desc-wrap {
-  display: grid;
-  grid-template-rows: 1fr; /* abierta por defecto (celular/tablet táctil) */
-  transition: grid-template-rows 0.5s var(--ease);
+.ev-pop {
+  position: absolute;
+  left: 1.4rem;
+  right: 1.4rem;
+  bottom: 9.8rem; /* justo encima del botón */
+  z-index: 3;
+  padding: 1.6rem 1.8rem;
+  border-radius: 2rem;
+  background: #fff;
+  color: var(--c-prim);
+  box-shadow: 0 24px 50px -16px rgba(0, 0, 0, 0.6);
+  /* oculta: transparente, desplazada un poco hacia abajo y sin recibir clics */
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(1rem) scale(0.97);
+  transform-origin: bottom left;
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.35s var(--ease), visibility 0.25s;
 }
 
-.ev-desc {
-  min-height: 0; /* necesario para que la fila pueda encogerse a 0 */
+/* Piquito que apunta al botón */
+.ev-pop::after {
+  content: "";
+  position: absolute;
+  left: 3rem;
+  bottom: -0.7rem;
+  width: 1.6rem;
+  height: 1.6rem;
+  background: #fff;
+  transform: rotate(45deg);
+  border-radius: 0.3rem;
+}
+
+.ev-pop strong {
+  display: block;
+  margin-bottom: 0.8rem;
+  font-family: var(--font-display);
+  font-size: 1.9rem;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.ev-pop ul {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin: 0 0 0.9rem;
+  padding: 0;
+  list-style: none;
+  color: rgba(27, 49, 88, 0.75);
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.ev-pop li i {
+  width: 1.8rem;
+  margin-right: 0.4rem;
+  color: var(--accent, var(--c-accent));
+  text-align: center;
+}
+
+.ev-pop p {
   margin: 0;
-  padding-top: 0.8rem;
-  overflow: hidden;
-  color: rgba(255, 246, 231, 0.82);
-  font-size: 1.5rem;
-  line-height: 1.6;
-  transition: opacity 0.4s ease;
+  font-size: 1.45rem;
+  line-height: 1.55;
+  color: rgba(27, 49, 88, 0.88);
 }
 
-/* (hover: hover) = dispositivos con mouse. Solo ahí ocultamos la descripción */
-@media (hover: hover) and (min-width: 768px) {
-  .ev-desc-wrap {
-    grid-template-rows: 0fr; /* cerrada */
-  }
+/* Mientras la tarjetita está abierta, el título y la fecha de fondo se atenúan para que no se mezclen.
+   :has() = "la tarjeta que contiene esto"; .ev-meta y .ev-title son los textos de atrás. */
+.ev-meta,
+.ev-title {
+  transition: opacity 0.25s ease;
+}
 
-  .ev-desc {
+.ev-card-inner:has(.ev-more.is-open) .ev-meta,
+.ev-card-inner:has(.ev-more.is-open) .ev-title,
+.ev-card-inner:has(.ev-link:focus-visible) .ev-meta,
+.ev-card-inner:has(.ev-link:focus-visible) .ev-title {
+  opacity: 0;
+}
+
+@media (hover: hover) {
+  .ev-card-inner:has(.ev-more:hover) .ev-meta,
+  .ev-card-inner:has(.ev-more:hover) .ev-title {
     opacity: 0;
   }
+}
 
-  .ev-card:hover .ev-desc-wrap,
-  .ev-card:focus-within .ev-desc-wrap {
-    grid-template-rows: 1fr; /* se abre */
-  }
+/* Se muestra: tocando (is-open) o con el teclado (foco visible) */
+.ev-more.is-open .ev-pop,
+.ev-link:focus-visible ~ .ev-pop {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  pointer-events: auto;
+}
 
-  .ev-card:hover .ev-desc,
-  .ev-card:focus-within .ev-desc {
+/* ...o con el mouse. (hover: hover) = solo dispositivos con mouse; en pantallas táctiles el "hover"
+   se queda pegado después de tocar y no dejaría cerrar la tarjetita. */
+@media (hover: hover) {
+  .ev-more:hover .ev-pop {
     opacity: 1;
+    visibility: visible;
+    transform: none;
+    pointer-events: auto;
   }
 }
 
 /* Botón "Ver detalle" */
+.ev-more {
+  align-self: flex-start; /* no se estira al ancho de la tarjeta */
+  margin-top: 1.6rem;
+}
+
 .ev-link {
   display: inline-flex;
   align-items: center;
-  align-self: flex-start; /* no se estira al ancho de la tarjeta */
   gap: 1rem;
-  margin-top: 1.6rem;
+  padding: 0;
+  border: 0;
+  background: transparent; /* es un <button>: se le quita el aspecto por defecto */
   color: #fff;
+  font: inherit;
   font-size: 1.5rem;
   font-weight: 700;
-  text-decoration: none;
+  cursor: pointer;
   min-height: var(--touch); /* mínimo 44px: cómodo de tocar en el celular */
 }
 
@@ -1027,7 +1106,8 @@ html:has(.home) {
   transition: transform 0.35s var(--ease);
 }
 
-.ev-link:hover .ev-link-icon {
+.ev-link:hover .ev-link-icon,
+.ev-more.is-open .ev-link-icon {
   transform: rotate(-45deg) scale(1.08); /* la flecha "apunta" hacia arriba-derecha */
 }
 
@@ -1151,7 +1231,6 @@ html:has(.home) {
 
   .ev-card-img,
   .ev-card-inner,
-  .ev-desc-wrap,
   .ev-indicator {
     transition: none;
   }
