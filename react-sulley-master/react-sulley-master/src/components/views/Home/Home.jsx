@@ -125,11 +125,11 @@ const PILLARS = [
 */
 const GROUPS = [
   {
-    name: "Organiza",
+    name: "Oruguitas",
     age: "1–3",
     description: "Pequeños exploradores que describen el mundo a través de los sentidos.",
     activities: ["Juegos sensoriales", "Rondas infantiles", "Manipulación de materiales", "Desarrollo de autonomía"],
-    icon: "🌱",
+    icon: "🐛",
     color: "#FEBF22",
     ink: "#1B3158",
   },
