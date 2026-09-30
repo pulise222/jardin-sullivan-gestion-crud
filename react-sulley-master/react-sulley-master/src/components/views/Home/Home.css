@@ -126,7 +126,7 @@ html:has(.home) {
 
 .nav.scrolled .nav-shell {
   width: min(100% - 2rem, 98rem);
-  background: rgba(255, 246, 231, 0.88);
+  background: rgba(255, 246, 231, 0.95);
   border-color: rgba(254, 191, 34, 0.4);
   box-shadow: 0 14px 40px -14px rgba(27, 49, 88, 0.3);
 }
@@ -721,300 +721,453 @@ html:has(.home) {
   }
 }
 
-/* ====== EVENTOS (Carrusel) ====== */
+/* ====================== EVENTOS (carrusel) ====================== */
+/*
+  IDEA: una sección oscura (azul de la marca) que rompe el ritmo de la página,
+  como los "paneles" de Apple. Las tarjetas son fotos a sangre con degradado y
+  el texto encima; al pasar el mouse la foto hace zoom y aparece la descripción.
+*/
 .events-section {
-  background: #FFF6E7;
-  padding: 4rem 0 6rem;
+  position: relative;
+  /* isolation: crea su propio "nivel" de apilamiento para que los z-index
+     negativos de las manchas de luz no se escapen detrás de otras secciones */
+  isolation: isolate;
+  /* overflow hidden: recorta las manchas de luz que se salen del panel */
+  overflow: hidden;
+  /* margen lateral + esquinas redondeadas = efecto de "panel flotante" */
+  margin-inline: 1rem;
+  padding-block: 8rem 9rem;
+  border-radius: 4rem;
+  background: var(--c-prim);
+  color: #fff;
 }
 
+/* Manchas de luz de fondo (amarillo y celeste de la paleta).
+   ::before y ::after son "elementos falsos" que dibuja el CSS sin tocar el HTML */
+.events-section::before,
+.events-section::after {
+  content: "";
+  position: absolute;
+  z-index: -1; /* detrás del contenido */
+  border-radius: 50%;
+  pointer-events: none; /* no estorban los clics */
+}
+
+.events-section::before {
+  width: 60rem;
+  height: 60rem;
+  top: -26rem;
+  right: -14rem;
+  /* radial-gradient: círculo de color que se desvanece hacia transparente */
+  background: radial-gradient(circle, rgba(254, 191, 34, 0.28), rgba(254, 191, 34, 0) 65%);
+}
+
+.events-section::after {
+  width: 54rem;
+  height: 54rem;
+  bottom: -26rem;
+  left: -16rem;
+  background: radial-gradient(circle, rgba(40, 168, 227, 0.26), rgba(40, 168, 227, 0) 65%);
+}
+
+/* --- Encabezado --- */
 .events-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1.2rem;
+  margin-bottom: 4.8rem;
+}
+
+/* Etiqueta pequeña en mayúsculas sobre el título */
+.events-eyebrow {
+  display: inline-flex;
   margin-bottom: 1.6rem;
+  padding: 0.6rem 1.4rem;
+  border-radius: 10rem; /* radio enorme = forma de píldora */
+  background: rgba(254, 191, 34, 0.14);
+  border: 1px solid rgba(254, 191, 34, 0.35);
+  color: var(--c-accent);
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
 .events-title {
-  font-size: clamp(2.0rem, 1.8rem + 1vw, 3.2rem);
-  font-weight: 800;
-  color: #1B3158;
   margin: 0;
-}
-
-.events-controls {
-  display: flex;
-  gap: .8rem;
-}
-
-.ev-btn {
-  min-width: 4.4rem;
-  min-height: 4.4rem;
-  border: .2rem solid #1B3158;
-  border-radius: .8rem;
-  background: #fff;
-  color: #1B3158;
-  font-size: 2.4rem;
+  color: #fff;
+  /* clamp(mínimo, ideal, máximo): el texto crece con el ancho de pantalla
+     pero nunca baja de 40px ni pasa de 72px */
+  font-size: clamp(4rem, 6vw, 7.2rem);
+  font-weight: 800;
   line-height: 1;
-  cursor: pointer;
+  letter-spacing: -0.04em; /* letras más juntas = títulos grandes más elegantes */
 }
 
-.ev-btn:hover {
-  background: #f9f9f9;
+.events-sub {
+  margin: 1.6rem 0 0;
+  max-width: 44rem;
+  color: rgba(255, 246, 231, 0.72);
+  font-size: clamp(1.6rem, 0.9vw + 1.2rem, 1.9rem);
+  line-height: 1.6;
 }
 
-.ev-btn:focus-visible {
-  outline: .3rem solid #FEBF22;
-  outline-offset: .2rem;
-}
-
+/* --- Carrusel: scroll horizontal con "imán" (scroll-snap), sin barra visible --- */
 .ev-scroller {
-  overflow-x: auto;
+  overflow-x: auto; /* permite deslizar de lado */
+  /* scroll-snap: al soltar, el carrusel se alinea solo a una tarjeta */
   scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
-  border-radius: 1.2rem;
-}
-
-.ev-scroller:focus-visible {
-  outline: .3rem solid #FEBF22;
-  outline-offset: .3rem;
-}
-
-/* Contenedor para superposición de flechas */
-.ev-wrap {
-  position: relative;
-}
-
-/* Botones superpuestos sobre las cards */
-.ev-overlay {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 10;
-  box-shadow: 0 .4rem 1rem rgba(0, 0, 0, .12);
-  background: #fff;
-  /* asegura contraste encima de la card */
-  opacity: .96;
-}
-
-.ev-prev.ev-overlay {
-  left: .8rem;
-}
-
-.ev-next.ev-overlay {
-  right: .8rem;
-}
-
-/* Estado deshabilitado cuando estás al inicio/fin */
-.ev-btn.is-disabled {
-  opacity: .35;
-  pointer-events: none;
-}
-
-/* ===== Overrides flechas: icon-only ===== */
-.ev-btn {
-  /* tamaño táctil, pero visual sin caja */
-  min-width: var(--touch);
-  min-height: var(--touch);
-  padding: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 3.2rem;
-  /* tamaño del símbolo ‹ › */
-  line-height: 1;
-  color: #1B3158;
-  background: transparent;
-  /* sin fondo */
-  border: 0;
-  /* sin borde */
-  box-shadow: none;
-  /* sin sombra */
-}
-
-/* Flechas superpuestas sin caja */
-.ev-overlay {
-  background: transparent;
-  opacity: 1;
-  box-shadow: none;
-}
-
-/* Hover solo cambia el color del ícono */
-.ev-btn:hover {
-  color: #0F2240;
-  background: transparent;
-}
-
-/* Ocultar barra de scroll horizontal del carrusel */
-.ev-scroller {
-  scrollbar-width: none;
-  /* Firefox */
+  /* evita que al llegar al final se mueva toda la página */
   overscroll-behavior-x: contain;
+  scrollbar-width: none; /* oculta la barra en Firefox */
+  -webkit-overflow-scrolling: touch; /* inercia suave en iPhone */
+  /* aire arriba/abajo para que la tarjeta pueda "subir" al hover sin cortarse;
+     el margen negativo compensa ese espacio para no mover el diseño */
+  padding-block: 1rem;
+  margin-block: -1rem;
+  border-radius: 2.8rem;
 }
 
+/* Oculta la barra en Chrome/Safari */
 .ev-scroller::-webkit-scrollbar {
   width: 0;
   height: 0;
-  /* Chrome/Safari */
 }
 
-/* Indicadores tipo líneas (centrados, superpuestos) */
-.ev-wrap {
-  position: relative;
+/* Anillo visible al enfocar con teclado (accesibilidad) */
+.ev-scroller:focus-visible {
+  outline: 0.3rem solid var(--c-accent);
+  outline-offset: 0.4rem;
 }
 
-.ev-indicators {
-  position: absolute;
-  left: 50%;
-  bottom: .8rem;
-  transform: translateX(-50%);
-  display: flex;
-  gap: .8rem;
-  z-index: 11;
-}
-
-.ev-indicator {
-  width: 2.4rem;
-  /* “trazo” */
-  height: .3rem;
-  border: 0;
-  padding: 0;
-  border-radius: .3rem;
-  background: rgba(0, 0, 0, .25);
-  /* gris base */
-  cursor: pointer;
-}
-
-.ev-indicator.is-active {
-  background: #1B3158;
-}
-
-/* activo (negro/azul oscuro) */
-.ev-indicator:focus-visible {
-  outline: .3rem solid #FEBF22;
-  outline-offset: .2rem;
-  border-radius: .4rem;
-}
-
-
-/* Accesibilidad: anillo de enfoque visible, sin “caja” */
-.ev-btn:focus-visible {
-  outline: .3rem solid #FEBF22;
-  outline-offset: .2rem;
-  border-radius: 50%;
-}
-
-/* Cuando no hay más para navegar, que desaparezcan */
-.ev-btn.is-disabled {
-  opacity: 0;
-  pointer-events: none;
-}
-
-/* Opcional: margen interno del scroller para que las flechas no tapen contenido al borde */
-.ev-scroller {
-  padding-inline: 4.8rem;
-}
-
-/* 48px = 4.8rem */
-@media screen and (min-width: 768px) {
-  .ev-scroller {
-    padding-inline: 5.6rem;
-  }
-}
-
+/* La fila de tarjetas: un grid con las tarjetas puestas en columnas */
 .ev-track {
   display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: 100%;
-  /* 1 card por vista (mobile) */
-  gap: 1.6rem;
-  padding: 0;
+  grid-auto-flow: column; /* cada tarjeta nueva va en una columna nueva (hacia la derecha) */
+  /* móvil: cada tarjeta mide 86% del ancho → se asoma un pedazo de la siguiente */
+  grid-auto-columns: 86%;
+  gap: 2rem;
   margin: 0;
-  list-style: none;
+  padding: 0;
+  list-style: none; /* quita los puntos de la lista */
 }
 
+/* Cada tarjeta es un punto de "imán": el carrusel se alinea a su borde izquierdo */
 .ev-slide {
   scroll-snap-align: start;
 }
 
+/* --- Tarjeta --- */
+/* Entrada: empieza invisible y 3rem más abajo; al recibir la clase is-visible
+   (que pone React con IntersectionObserver) sube y aparece.
+   transition-delay usa --i para que entren una tras otra. */
 .ev-card {
+  height: 100%;
+  opacity: 0;
+  transform: translateY(3rem);
+  transition: opacity 0.8s var(--ease), transform 0.8s var(--ease);
+  transition-delay: calc(var(--i, 0) * 80ms);
+}
+
+.ev-card.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* El "cuerpo" de la tarjeta: aquí van la foto, el degradado y el texto */
+.ev-card-inner {
+  position: relative;
+  isolation: isolate;
   display: flex;
   flex-direction: column;
-  background: #fff;
-  border-radius: 1.2rem;
-  /* sombra eliminada para un diseño más limpio y moderno */
-  overflow: hidden;
+  justify-content: flex-end; /* el texto se pega abajo */
   height: 100%;
-  position: relative;
-  perspective: 1200px;
-  -webkit-tap-highlight-color: transparent;
+  min-height: 42rem;
+  aspect-ratio: 4 / 5; /* proporción vertical, como un póster */
+  padding: 2.4rem;
+  border-radius: 2.8rem;
+  overflow: hidden; /* recorta la foto a las esquinas redondeadas */
+  background: #0f2240;
+  box-shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.6);
+  transition: transform 0.5s var(--ease), box-shadow 0.5s ease;
 }
 
-/* Opacidad controlada en la card principal; la animación de transform
-   se aplica al interior `.ev-card-inner` para permitir tilt sin romper
-   la animación de entrada. */
-.ev-card { opacity: 0; transition: opacity 0.7s ease; }
-.ev-card.is-visible { opacity: 1; }
-
-.ev-card-inner {
-  transform: translateY(2.4rem) scale(0.995);
-  transition: transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: transform;
-  transform-style: preserve-3d;
-}
-.ev-card.is-visible .ev-card-inner {
-  transform: translateY(0) scale(1);
+/* Hover (mouse) o focus-within (teclado): la tarjeta sube un poco */
+.ev-card:hover .ev-card-inner,
+.ev-card:focus-within .ev-card-inner {
+  transform: translateY(-0.6rem);
+  box-shadow: 0 40px 70px -30px rgba(0, 0, 0, 0.75);
 }
 
-/* Overlay discreto que aparece al hover (mejora la legibilidad) */
-.ev-card-overlay {
+/* La foto ocupa toda la tarjeta y queda detrás del texto (z-index negativo) */
+.ev-card-img {
   position: absolute;
-  left: 1.6rem;
-  bottom: 1.2rem;
-  background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,255,255,0.96));
-  padding: .8rem 1.2rem;
-  border-radius: 1rem;
-  /* sombra ligera sustituida por borde sutil */
-  border: 1px solid rgba(27,49,88,0.04);
-  opacity: 0;
-  transform: translateY(8px);
-  transition: opacity 0.35s ease, transform 0.35s ease;
-  pointer-events: none;
+  inset: 0; /* atajo de top/right/bottom/left: 0 */
+  z-index: -2;
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* llena el espacio recortando lo que sobre, sin deformar */
+  transition: transform 0.9s var(--ease);
+}
+
+.ev-card:hover .ev-card-img,
+.ev-card:focus-within .ev-card-img {
+  transform: scale(1.06); /* zoom suave */
+}
+
+/* Degradado oscuro abajo para que el texto blanco siempre se lea sobre la foto */
+.ev-card-inner::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1; /* entre la foto (-2) y el texto */
+  background: linear-gradient(to top, rgba(15, 34, 64, 0.96) 0%, rgba(15, 34, 64, 0.72) 40%, rgba(15, 34, 64, 0) 72%);
+}
+
+/* Fecha tipo calendario; el color (--accent) cambia en cada tarjeta */
+.ev-date-chip {
+  position: absolute;
+  top: 1.8rem;
+  left: 1.8rem;
   display: flex;
-  gap: .6rem;
+  flex-direction: column;
   align-items: center;
-}
-.ev-card:hover .ev-card-overlay,
-.ev-card:focus-within .ev-card-overlay {
-  opacity: 1;
-  transform: translateY(0);
-  pointer-events: auto;
+  gap: 0.2rem;
+  padding: 0.9rem 1.4rem;
+  border-radius: 1.8rem;
+  /* var(--accent, color) = usa --accent y, si no existe, el color de respaldo */
+  background: var(--accent, var(--c-accent));
+  color: var(--c-prim);
+  box-shadow: 0 10px 24px -8px rgba(0, 0, 0, 0.45);
 }
 
+.ev-date-chip strong {
+  font-family: var(--font-display);
+  font-size: 2.8rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
 
-/* ====== TIPOGRAFÍA & DINAMISMO PARA EVENTOS ====== */
-.ev-title {
+.ev-date-chip span {
+  font-size: 1.2rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* Línea "fecha · hora · lugar" */
+.ev-meta {
   margin: 0;
-  color: #0F2240;
-  font-size: clamp(2.0rem, 1.8rem + .8vw, 2.6rem);
-  font-weight: 900;
+  color: rgba(255, 246, 231, 0.82);
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.ev-title {
+  margin: 0.6rem 0 0;
+  color: #fff;
+  font-size: clamp(2.2rem, 1.6rem + 0.9vw, 2.8rem);
+  font-weight: 800;
+  line-height: 1.1;
   letter-spacing: -0.02em;
 }
 
-.ev-date {
-  margin: 0;
-  color: rgba(15,34,64,0.7);
-  font-size: 1.3rem;
-  font-weight: 700;
-  text-transform: none;
-  margin-top: .4rem;
+/*
+  Descripción: en pantallas con mouse se oculta y "se despliega" al pasar el cursor.
+  Truco de grid: una fila que pasa de altura 0fr a 1fr se anima suavemente
+  (con `height: auto` normal no se podría animar). En celular siempre se ve.
+*/
+.ev-desc-wrap {
+  display: grid;
+  grid-template-rows: 1fr; /* abierta por defecto (celular/tablet táctil) */
+  transition: grid-template-rows 0.5s var(--ease);
 }
 
 .ev-desc {
+  min-height: 0; /* necesario para que la fila pueda encogerse a 0 */
   margin: 0;
-  color: rgba(15,34,64,0.85);
+  padding-top: 0.8rem;
+  overflow: hidden;
+  color: rgba(255, 246, 231, 0.82);
   font-size: 1.5rem;
   line-height: 1.6;
+  transition: opacity 0.4s ease;
+}
+
+/* (hover: hover) = dispositivos con mouse. Solo ahí ocultamos la descripción */
+@media (hover: hover) and (min-width: 768px) {
+  .ev-desc-wrap {
+    grid-template-rows: 0fr; /* cerrada */
+  }
+
+  .ev-desc {
+    opacity: 0;
+  }
+
+  .ev-card:hover .ev-desc-wrap,
+  .ev-card:focus-within .ev-desc-wrap {
+    grid-template-rows: 1fr; /* se abre */
+  }
+
+  .ev-card:hover .ev-desc,
+  .ev-card:focus-within .ev-desc {
+    opacity: 1;
+  }
+}
+
+/* Botón "Ver detalle" */
+.ev-link {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start; /* no se estira al ancho de la tarjeta */
+  gap: 1rem;
+  margin-top: 1.6rem;
+  color: #fff;
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-decoration: none;
+  min-height: var(--touch); /* mínimo 44px: cómodo de tocar en el celular */
+}
+
+/* Círculo con la flecha; toma el color de la tarjeta */
+.ev-link-icon {
+  display: grid;
+  place-items: center; /* centra la flecha dentro del círculo */
+  width: 3.6rem;
+  height: 3.6rem;
+  border-radius: 50%;
+  background: var(--accent, var(--c-accent));
+  color: var(--c-prim);
+  font-size: 1.2rem;
+  transition: transform 0.35s var(--ease);
+}
+
+.ev-link:hover .ev-link-icon {
+  transform: rotate(-45deg) scale(1.08); /* la flecha "apunta" hacia arriba-derecha */
+}
+
+/* --- Controles de abajo: flecha · indicadores · flecha --- */
+.ev-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  margin-top: 3.6rem;
+}
+
+/* Flechas redondas */
+.ev-btn {
+  display: grid;
+  place-items: center;
+  width: 5rem;
+  height: 5rem;
+  padding: 0;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 246, 231, 0.3);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease,
+    transform 0.25s var(--ease), opacity 0.25s ease;
+}
+
+/* :not(:disabled) = solo reacciona si la flecha está activa */
+.ev-btn:hover:not(:disabled) {
+  background: var(--c-accent);
+  border-color: var(--c-accent);
+  color: var(--c-prim);
+  transform: scale(1.06);
+}
+
+.ev-btn:active:not(:disabled) {
+  transform: scale(0.95); /* efecto de "presionado" */
+}
+
+/* Al llegar al inicio/final la flecha se apaga */
+.ev-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+/* --- Indicadores: la "píldora" activa se alarga --- */
+.ev-indicators {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.ev-indicator {
+  position: relative;
+  width: 0.8rem;
+  height: 0.8rem;
+  padding: 0;
+  border: 0;
+  border-radius: 10rem;
+  background: rgba(255, 246, 231, 0.3);
+  cursor: pointer;
+  /* animamos el ancho para que el cambio de punto a píldora sea fluido */
+  transition: width 0.4s var(--ease), background 0.3s ease;
+}
+
+/* Zona de toque invisible, más grande que el punto visible (más fácil de pulsar) */
+.ev-indicator::after {
+  content: "";
+  position: absolute;
+  inset: -1.2rem -0.6rem;
+}
+
+.ev-indicator.is-active {
+  width: 3.2rem;
+  background: var(--c-accent);
+}
+
+/* Anillo de foco visible para quien navega con teclado */
+.ev-indicator:focus-visible,
+.ev-btn:focus-visible,
+.ev-link:focus-visible {
+  outline: 0.3rem solid var(--c-accent);
+  outline-offset: 0.3rem;
+}
+
+/* --- Responsive: cuántas tarjetas caben según el ancho de pantalla --- */
+/* Tablet ≥768: 2 tarjetas por vista */
+@media screen and (min-width: 768px) {
+  .ev-track {
+    grid-auto-columns: calc(50% - 1rem);
+  }
+}
+
+/* Desktop ≥1024: 3 tarjetas por vista (100% menos 2 espacios de 2rem, entre 3) */
+@media screen and (min-width: 1024px) {
+  .ev-track {
+    grid-auto-columns: calc((100% - 4rem) / 3);
+  }
+}
+
+/* Móvil: menos relleno y esquinas un poco menos grandes */
+@media screen and (max-width: 767px) {
+  .events-section {
+    padding-block: 6rem 7rem;
+    border-radius: 2.8rem;
+  }
+
+  .events-header {
+    margin-bottom: 3.2rem;
+  }
+}
+
+/* Si el sistema pide "reducir movimiento", quitamos las animaciones */
+@media (prefers-reduced-motion: reduce) {
+  .ev-card {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .ev-card-img,
+  .ev-card-inner,
+  .ev-desc-wrap,
+  .ev-indicator {
+    transition: none;
+  }
 }
 
 /* ====================== NOSOTROS (rediseño) ====================== */
@@ -1101,95 +1254,6 @@ html:has(.home) {
   .nos-media { order: 1; }
   .nos-text p { font-size: 1.55rem; }
   .nos-media img { max-height: 36rem; object-fit: cover; }
-}
-
-/* Retrasos escalonados para dar efecto de cascada (hasta 8 elementos) */
-.ev-track .ev-slide:nth-child(1)  .ev-card-inner { transition-delay: 0.06s; }
-.ev-track .ev-slide:nth-child(2)  .ev-card-inner { transition-delay: 0.12s; }
-.ev-track .ev-slide:nth-child(3)  .ev-card-inner { transition-delay: 0.18s; }
-.ev-track .ev-slide:nth-child(4)  .ev-card-inner { transition-delay: 0.24s; }
-.ev-track .ev-slide:nth-child(5)  .ev-card-inner { transition-delay: 0.30s; }
-.ev-track .ev-slide:nth-child(6)  .ev-card-inner { transition-delay: 0.36s; }
-.ev-track .ev-slide:nth-child(7)  .ev-card-inner { transition-delay: 0.42s; }
-.ev-track .ev-slide:nth-child(8)  .ev-card-inner { transition-delay: 0.48s; }
-
-.ev-card-media {
-  aspect-ratio: 16/9;
-  background: #eaeaea;
-}
-
-.ev-card-media img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-.ev-card-fallback {
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, #dfe8ff, #ffd98a);
-}
-
-.ev-card-body {
-  display: flex;
-  flex-direction: column;
-  gap: .8rem;
-  padding: 1.6rem;
-}
-
-.ev-title {
-  margin: 0;
-  color: #1B3158;
-  font-size: clamp(1.8rem, 1.6rem + .6vw, 2.2rem);
-}
-
-.ev-date {
-  margin: 0;
-  color: #444;
-  font-size: 1.4rem;
-  font-weight: 600;
-}
-
-.ev-desc {
-  margin: 0;
-  color: #333;
-  font-size: 1.5rem;
-  line-height: 1.6;
-}
-
-.ev-link {
-  margin-top: auto;
-  align-self: flex-start;
-  font-size: 15px;
-  ;
-  background: #FEBF22;
-  color: #1B3158;
-  text-decoration: none;
-  font-weight: 700;
-  padding: .8rem 1.6rem;
-  border-radius: 2rem;
-  min-height: 4.4rem;
-  display: inline-flex;
-  align-items: center;
-}
-
-.ev-link:hover {
-  filter: brightness(0.98);
-}
-
-/* Tablet ≥768: 2 cards por vista */
-@media screen and (min-width: 768px) {
-  .ev-track {
-    grid-auto-columns: calc(50% - .8rem);
-  }
-}
-
-/* Desktop ≥1024: 3 cards por vista */
-@media screen and (min-width: 1024px) {
-  .ev-track {
-    grid-auto-columns: calc(33.333% - 1.06rem);
-  }
 }
 
 

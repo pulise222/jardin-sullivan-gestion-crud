@@ -40,6 +40,49 @@ const HERO = {
     { icon: '💛', title: 'Atención personalizada', subtitle: 'Cada niño, a su ritmo' },
   ],
 }
+
+/*
+  EVENTOS: datos de ejemplo. Más adelante estos datos vendrán de la API del
+  backend (la app `eventos` de Django); por ahora viven aquí para diseñar.
+  `color` es el color de la fecha y del botón de cada tarjeta (paleta de la marca).
+*/
+const EVENTS = [
+  {
+    title: "Feria de la ciencia",
+    day: "12", month: "Oct", time: "9:00 a.m.",
+    place: "Auditorio Principal",
+    description: "Muestras de proyectos y experimentos de los niños.",
+    image: evento1, link: "#", color: "#FEBF22",
+  },
+  {
+    title: "Día de la familia",
+    day: "20", month: "Oct", time: "8:00 a.m.",
+    place: "Patio Central",
+    description: "Juegos, picnic y actividades colaborativas.",
+    image: evento1, link: "#", color: "#28A8E3",
+  },
+  {
+    title: "Muestra artística",
+    day: "28", month: "Oct", time: "10:00 a.m.",
+    place: "Sala Multiusos",
+    description: "Exposición de arte y música.",
+    image: evento1, link: "#", color: "#93C524",
+  },
+  {
+    title: "Charla de nutrición",
+    day: "05", month: "Nov", time: "4:00 p.m.",
+    place: "Aula 3",
+    description: "Hábitos saludables en la primera infancia.",
+    image: evento1, link: "#", color: "#F25141",
+  },
+  {
+    title: "Festival de lectura",
+    day: "15", month: "Nov", time: "9:30 a.m.",
+    place: "Biblioteca",
+    description: "Cuentacuentos y trueque de libros.",
+    image: evento1, link: "#", color: "#FF8A00",
+  },
+];
 const Home = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -53,42 +96,51 @@ const Home = () => {
 
   
 
+  // ---- Carrusel de eventos ----
+  // Un "paso" = el ancho de una tarjeta + el espacio entre tarjetas
+  const getStep = () => {
+    const el = scrollerRef.current;
+    const slide = el?.querySelector(".ev-slide");
+    if (!el || !slide) return 0;
+    const gap = parseFloat(getComputedStyle(el.firstElementChild).columnGap) || 0;
+    return slide.offsetWidth + gap;
+  };
+
+  // Las flechas avanzan o retroceden una tarjeta
   const scrollByStep = (dir = 1) => {
     const el = scrollerRef.current;
     if (!el) return;
-    const step = el.clientWidth; // desplaza un “viewport” del carrusel
-    el.scrollBy({ left: step * dir, behavior: "smooth" });
+    el.scrollBy({ left: getStep() * dir, behavior: "smooth" });
   };
 
+  // Recalcula qué flechas se pueden usar y cuántos indicadores mostrar
   const updateArrows = () => {
-  const el = scrollerRef.current;
-  if (!el) return;
+    const el = scrollerRef.current;
+    const step = getStep();
+    if (!el || !step) return;
 
-  const atStart = el.scrollLeft <= 2;
-  const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 2;
-  setCanPrev(!atStart);
-  setCanNext(!atEnd);
+    const maxScroll = el.scrollWidth - el.clientWidth;
+    setCanPrev(el.scrollLeft > 2);
+    setCanNext(el.scrollLeft < maxScroll - 2);
 
-  // indicadores (páginas = ancho total / ancho visible)
-  const step = el.clientWidth;
-  const pages = Math.max(1, Math.ceil(el.scrollWidth / step));
-  setTotalPages(pages);
-  const page = Math.round(el.scrollLeft / step);
-  setCurrentPage(Math.min(pages - 1, page));
-};
+    // un indicador por cada posición a la que se puede llegar
+    const stops = Math.max(1, Math.round(maxScroll / step) + 1);
+    setTotalPages(stops);
+    setCurrentPage(Math.min(stops - 1, Math.round(el.scrollLeft / step)));
+  };
 
   useEffect(() => {
-   const el = scrollerRef.current;
-   if (!el) return;
-   updateArrows(); // estado inicial
-   const onScroll = () => updateArrows();
-   el.addEventListener("scroll", onScroll, { passive: true });
-   window.addEventListener("resize", updateArrows);
-   return () => {
-     el.removeEventListener("scroll", onScroll);
-     window.removeEventListener("resize", updateArrows);
-   };
- }, [/* si cargas desde API: */ /* eventos.length */]);
+    const el = scrollerRef.current;
+    if (!el) return;
+    updateArrows(); // estado inicial
+    const onScroll = () => updateArrows();
+    el.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", updateArrows);
+    return () => {
+      el.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", updateArrows);
+    };
+  }, []);
 
   // IntersectionObserver para animar las tarjetas del carrusel cuando entran al viewport
   useEffect(() => {
@@ -105,44 +157,6 @@ const Home = () => {
 
     cards.forEach((c) => io.observe(c));
     return () => io.disconnect();
-  }, []);
-
-  // Efecto tilt leve por mouse: rota la tarjeta interior según posición del cursor
-  useEffect(() => {
-    const inners = document.querySelectorAll('.ev-card-inner');
-    if (!inners || inners.length === 0) return;
-
-    function handleMove(e) {
-      const card = e.currentTarget;
-      const rect = card.getBoundingClientRect();
-      const px = (e.clientX - rect.left) / rect.width; // 0..1
-      const py = (e.clientY - rect.top) / rect.height; // 0..1
-      const rx = (py - 0.5) * 6; // rot X
-      const ry = (px - 0.5) * -8; // rot Y
-      card.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg) translateZ(0)`;
-    }
-
-    function handleLeave(e) {
-      e.currentTarget.style.transform = '';
-    }
-
-    inners.forEach((el) => {
-      const parent = el.closest('.ev-card');
-      if (!parent) return;
-      parent.addEventListener('mousemove', handleMove.bind(el));
-      parent.addEventListener('mouseleave', handleLeave.bind(el));
-      parent.addEventListener('blur', handleLeave.bind(el));
-    });
-
-    return () => {
-      inners.forEach((el) => {
-        const parent = el.closest('.ev-card');
-        if (!parent) return;
-        parent.removeEventListener('mousemove', handleMove.bind(el));
-        parent.removeEventListener('mouseleave', handleLeave.bind(el));
-        parent.removeEventListener('blur', handleLeave.bind(el));
-      });
-    };
   }, []);
 
   // Reveal para la sección Nosotros
@@ -340,127 +354,131 @@ const Home = () => {
         </a>
       </section>
 
-      {/*Eventos*/}
-<section id="eventos" className="events-section">
-  <div className="wrap events-header">
-    <h2 className="events-title">Eventos</h2>
-  </div>
+      {/* ==========================================================
+          EVENTOS: sección oscura con un carrusel de tarjetas.
+          Estructura:
+            section.events-section
+              ├─ encabezado (etiqueta + título + frase)
+              ├─ .ev-scroller  → la "ventana" que se desliza horizontalmente
+              │    └─ ul.ev-track → fila de tarjetas (una <li> por evento)
+              └─ .ev-footer   → flecha ‹ + indicadores + flecha ›
+          ========================================================== */}
+      <section id="eventos" className="events-section">
+        <div className="wrap">
 
-  <div className="wrap">
-    <div className="ev-wrap">
-      {/* Flecha izquierda superpuesta */}
-      <button
-        type="button"
-        className={`ev-btn ev-prev ev-overlay ${!canPrev ? "is-disabled" : ""}`}
-        aria-label="Evento anterior"
-        onClick={() => scrollByStep(-1)}
-        disabled={!canPrev}
-        aria-disabled={!canPrev}
-      >
-        ‹
-      </button>
+          {/* --- Encabezado de la sección --- */}
+          <div className="events-header">
+            {/* "Eyebrow": textito pequeño sobre el título que da contexto */}
+            <span className="events-eyebrow">Agenda</span>
+            <h2 className="events-title">Eventos</h2>
+            <p className="events-sub">
+              Momentos para aprender, jugar y compartir en familia.
+            </p>
+          </div>
 
-      <div className="ev-scroller" ref={scrollerRef} tabIndex={0} aria-label="Carrusel de eventos">
-        <ul className="ev-track">
-          {[
-            {
-              title: "Feria de la ciencia",
-              date: "12 Oct 2025, 9:00 a.m.",
-              place: "Auditorio Principal",
-              description: "Muestras de proyectos y experimentos de los niños.",
-              image: "/Imagen/evento1.jpg",
-              link: "#",
-            },
-            {
-              title: "Día de la familia",
-              date: "20 Oct 2025, 8:00 a.m.",
-              place: "Patio Central",
-              description: "Juegos, picnic y actividades colaborativas.",
-              image: "/Imagen/evento2.jpg",
-              link: "#",
-            },
-            {
-              title: "Muestra artística",
-              date: "28 Oct 2025, 10:00 a.m.",
-              place: "Sala Multiusos",
-              description: "Exposición de arte y música.",
-              image: "/Imagen/evento3.jpg",
-              link: "#",
-            },
-            {
-              title: "Charla de nutrición",
-              date: "05 Nov 2025, 4:00 p.m.",
-              place: "Aula 3",
-              description: "Hábitos saludables en la primera infancia.",
-              image: "/Imagen/evento4.jpg",
-              link: "#",
-            },
-            {
-              title: "Festival de lectura",
-              date: "15 Nov 2025, 9:30 a.m.",
-              place: "Biblioteca",
-              description: "Cuentacuentos y trueque de libros.",
-              image: "/Imagen/evento5.jpg",
-              link: "#",
-            },
-          ].map((ev, i) => (
-            <li className="ev-slide" key={i}>
-              <article className="ev-card" tabIndex={0} aria-label={`Evento ${ev.title}`}>
-                <div className="ev-card-inner">
-                  <div className="ev-card-media">
-                    {ev.image ? <img src={evento1} alt="" aria-hidden="true" /> : <div className="ev-card-fallback" />}
-                  </div>
-                  <div className="ev-card-body">
-                    <h3 className="ev-title">{ev.title}</h3>
-                    <p className="ev-date">{ev.date} · {ev.place}</p>
-                    <p className="ev-desc">{ev.description}</p>
-                    {ev.link && <a className="ev-link" href={ev.link}>Ver detalle</a>}
-                  </div>
-                </div>
+          {/* --- Carrusel ---
+              ref={scrollerRef}: nos deja controlar este elemento desde JavaScript
+              (para mover el scroll con las flechas y saber en qué tarjeta estamos).
+              tabIndex={0}: permite enfocarlo con el teclado y moverlo con ← →. */}
+          <div className="ev-scroller" ref={scrollerRef} tabIndex={0} aria-label="Carrusel de eventos">
+            <ul className="ev-track">
+              {/* .map() recorre la lista EVENTS y dibuja una tarjeta por cada evento.
+                  `ev` es el evento actual e `i` su posición (0, 1, 2...). */}
+              {EVENTS.map((ev, i) => (
+                <li className="ev-slide" key={ev.title}>
+                  {/* Pasamos datos a CSS con variables:
+                      --accent → color propio de esta tarjeta
+                      --i      → posición, para que las tarjetas entren una tras otra */}
+                  <article className="ev-card" style={{ "--accent": ev.color, "--i": i }}>
+                    <div className="ev-card-inner">
+                      {/* Foto de fondo. alt="" porque es decorativa (el texto ya dice todo) */}
+                      <img className="ev-card-img" src={ev.image} alt="" loading="lazy" />
 
-                {/* Overlay interactivo que aparece al hover/focus */}
-                <div className="ev-card-overlay" aria-hidden="true">
-                  <strong>{ev.title}</strong>
-                  <span style={{marginLeft:'.6rem', color:'rgba(27,49,88,.7)'}}>{ev.date}</span>
-                </div>
-              </article>
-            </li>
-          ))}
-        </ul>
-      </div>
+                      {/* Fecha tipo calendario. aria-hidden: los lectores de pantalla
+                          la saltan, porque la fecha completa ya está en .ev-meta */}
+                      <div className="ev-date-chip" aria-hidden="true">
+                        <strong>{ev.day}</strong>
+                        <span>{ev.month}</span>
+                      </div>
 
-      {/* Indicadores tipo “líneas” (fuera del <ul>) */}
-      <div className="ev-indicators" role="tablist" aria-label="Páginas del carrusel">
-        {Array.from({ length: totalPages }).map((_, i) => (
-          <button
-            key={i}
-            type="button"
-            className={`ev-indicator ${currentPage === i ? "is-active" : ""}`}
-            aria-label={`Ir a página ${i + 1}`}
-            aria-current={currentPage === i ? "true" : undefined}
-            onClick={() => {
-              const el = scrollerRef.current;
-              if (!el) return;
-              el.scrollTo({ left: el.clientWidth * i, behavior: "smooth" });
-            }}
-          />
-        ))}
-      </div>
+                      {/* Datos del evento: fecha · hora · lugar */}
+                      <p className="ev-meta">{ev.day} {ev.month} · {ev.time} · {ev.place}</p>
+                      <h3 className="ev-title">{ev.title}</h3>
 
-      {/* Flecha derecha superpuesta */}
-      <button
-        type="button"
-        className={`ev-btn ev-next ev-overlay ${!canNext ? "is-disabled" : ""}`}
-        aria-label="Siguiente evento"
-        onClick={() => scrollByStep(1)}
-        disabled={!canNext}
-        aria-disabled={!canNext}
-      >
-        ›
-      </button>
-    </div>
-  </div>
-</section>
+                      {/* La descripción va dentro de un contenedor para poder
+                          animar su apertura al pasar el mouse (ver CSS) */}
+                      <div className="ev-desc-wrap">
+                        <p className="ev-desc">{ev.description}</p>
+                      </div>
+
+                      {/* `ev.link && (...)` = "si hay enlace, dibuja el botón" */}
+                      {ev.link && (
+                        <a className="ev-link" href={ev.link}>
+                          Ver detalle
+                          <span className="ev-link-icon" aria-hidden="true">
+                            <i className="fas fa-arrow-right"></i>
+                          </span>
+                        </a>
+                      )}
+                    </div>
+                  </article>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* --- Controles: ‹ flecha · indicadores · flecha › ---
+              Van DEBAJO del carrusel para que el menú flotante nunca los tape. */}
+          <div className="ev-footer">
+            {/* Flecha anterior. `disabled` la apaga cuando ya estamos en la primera tarjeta */}
+            <button
+              type="button"
+              className="ev-btn"
+              aria-label="Evento anterior"
+              onClick={() => scrollByStep(-1)}
+              disabled={!canPrev}
+            >
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M15 5l-7 7 7 7" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+
+            {/* Indicadores: un punto por cada posición del carrusel.
+                Array.from({ length: n }) crea una lista de n elementos para recorrer.
+                El punto activo (currentPage) se alarga y se pinta de amarillo. */}
+            <div className="ev-indicators" role="group" aria-label="Posición en el carrusel">
+              {Array.from({ length: totalPages }).map((_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  className={`ev-indicator ${currentPage === i ? "is-active" : ""}`}
+                  aria-label={`Ir al evento ${i + 1}`}
+                  aria-current={currentPage === i ? "true" : undefined}
+                  onClick={() => {
+                    // Al pulsar un punto, desliza el carrusel hasta esa tarjeta
+                    const el = scrollerRef.current;
+                    if (!el) return;
+                    el.scrollTo({ left: getStep() * i, behavior: "smooth" });
+                  }}
+                />
+              ))}
+            </div>
+
+            {/* Flecha siguiente. Se apaga al llegar a la última tarjeta */}
+            <button
+              type="button"
+              className="ev-btn"
+              aria-label="Siguiente evento"
+              onClick={() => scrollByStep(1)}
+              disabled={!canNext}
+            >
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M9 5l7 7-7 7" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </section>
 
       {/* NOSOTROS */}
       <section className="nos-section" id="Nosotros">
